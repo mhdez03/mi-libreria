@@ -10,8 +10,11 @@
         .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
         .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 2.5rem; font-weight: bold; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 10; white-space: nowrap; text-align: center; width: 100%; }
         .prose-serif { font-family: 'Georgia', serif; }
+        
+        /* Barra de Progreso */
         #progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.05); z-index: 100; }
         #progress-bar { height: 100%; width: 0%; background: #0095f6; transition: width 0.3s ease; }
+        
         .btn-nav { @apply bg-gray-100 text-gray-800 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest active:scale-90 transition-all disabled:opacity-20; }
     </style>
 </head>
@@ -20,10 +23,10 @@
     <div id="login-screen" class="fixed inset-0 bg-white z-[110] flex items-center justify-center p-6 transition-all duration-500">
         <div class="max-w-sm w-full text-center">
             <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">MH</div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2 font-sans">Acceso VIP</h1>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Acceso VIP</h1>
             <p class="text-gray-400 text-sm mb-8 italic">Introduce tu correo para continuar</p>
             <input type="email" id="email-input" placeholder="tu@correo.com" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400 transition-colors">
-            <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform">Entrar a la Biblioteca</button>
+            <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform">Entrar</button>
             <p id="error-msg" class="text-red-500 text-xs mt-4 hidden font-medium">Acceso no autorizado</p>
         </div>
     </div>
@@ -42,35 +45,42 @@
         </header>
 
         <main class="p-6">
-            <h2 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] mb-8">Biblioteca Privada</h2>
+            <h2 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] mb-8 text-left">Biblioteca Privada</h2>
             <div id="contenedor-libros" class="grid grid-cols-2 gap-8"></div>
         </main>
     </div>
 
     <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto">
         <div id="progress-container"><div id="progress-bar"></div></div>
+        
         <nav class="sticky top-0 bg-white/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
             <button id="btn-cerrar" class="text-gray-400 text-sm font-bold">✕ SALIR</button>
-            <span id="nav-info" class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Lectura</span>
+            <span id="nav-cap-titulo" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Lectura</span>
             <div class="w-10"></div>
         </nav>
-        <div class="watermark text-center">MIGUEL HERNÁNDEZ • ORIGINAL</div>
+        
+        <div class="watermark">MIGUEL HERNÁNDEZ • ORIGINAL</div>
+        
         <article class="max-w-prose mx-auto p-8 pt-10 pb-40">
             <h1 id="libro-titulo-display" class="text-4xl font-serif font-bold mb-4 text-gray-900 leading-tight"></h1>
             <div id="cap-actual-num" class="text-blue-500 text-[10px] font-black uppercase mb-12 tracking-[0.3em]"></div>
             <div id="libro-texto" class="text-xl leading-[1.8] prose-serif text-gray-800 mb-20 whitespace-pre-line"></div>
-            <div class="flex justify-between gap-4 mb-20">
+
+            <div class="flex justify-between gap-4 py-10 border-t border-b border-gray-100 mb-10">
                 <button id="btn-ant" class="btn-nav flex-1">Anterior</button>
-                <button id="btn-sig" class="btn-nav flex-1 bg-gray-900 text-white font-bold">Siguiente</button>
+                <button id="btn-sig" class="btn-nav flex-1 bg-gray-900 text-white">Siguiente</button>
             </div>
-            <div class="border-t border-gray-100 pt-12 text-center">
-                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8 text-center">¿Qué tal la lectura?</p>
+
+            <div class="text-center">
+                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8">¿Qué tal la lectura?</p>
                 <div class="flex justify-center gap-12 mb-12">
-                    <button onclick="enviarReaccion('like')" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-150">👍</button>
-                    <button onclick="enviarReaccion('dislike')" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-150">👎</button>
+                    <button onclick="enviarReaccion('like')" class="text-4xl grayscale hover:grayscale-0 transition active:scale-150">👍</button>
+                    <button onclick="enviarReaccion('dislike')" class="text-4xl grayscale hover:grayscale-0 transition active:scale-150">👎</button>
                 </div>
-                <textarea id="texto-comentario" placeholder="Escribe un comentario..." class="w-full bg-gray-50 rounded-3xl p-6 text-sm italic outline-none focus:ring-2 focus:ring-blue-100 h-32 mb-4"></textarea>
-                <button id="btn-comentar" class="w-full bg-blue-600 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest">Enviar Mensaje</button>
+                <div class="bg-gray-50 rounded-[2rem] p-6">
+                    <textarea id="texto-comentario" placeholder="Escribe un mensaje sobre este capítulo..." class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 resize-none h-24 italic"></textarea>
+                    <button id="btn-comentar" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest">Enviar Comentario</button>
+                </div>
             </div>
         </article>
     </div>
@@ -96,6 +106,7 @@
         let indiceActual = 0;
         let idLibroActual = "";
 
+        // Auto-login
         window.onload = () => { if(lectorEmail) { loginExitoso(); } };
 
         document.getElementById('btn-entrar').onclick = async () => {
@@ -103,7 +114,7 @@
             const docSnap = await getDoc(doc(db, "lectores_autorizados", email));
             if (docSnap.exists()) {
                 lectorEmail = email;
-                localStorage.setItem('lector_email', email);
+                localStorage.setItem('lector_email', email); //
                 loginExitoso();
             } else { document.getElementById('error-msg').classList.remove('hidden'); }
         };
@@ -122,11 +133,11 @@
             contenedor.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const libro = doc.data();
-                const tituloReal = libro.Titulo || libro.titulo || "Sin Título";
+                const tituloReal = libro.Titulo || libro.titulo || "Sin Título"; //
                 contenedor.innerHTML += `
                     <div class="cursor-pointer" onclick="prepararLectura('${doc.id}', '${tituloReal}')">
                         <div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-4 overflow-hidden relative border-4 border-white">
-                            <img src="${libro.portadaURL}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=Cargando...'">
+                            <img src="${libro.portadaURL}" class="w-full h-full object-cover">
                         </div>
                         <h3 class="font-bold text-sm text-gray-800 text-center">${tituloReal}</h3>
                     </div>`;
@@ -150,11 +161,16 @@
             document.getElementById('libro-titulo-display').innerText = tituloLibro;
             document.getElementById('cap-actual-num').innerText = `Capítulo ${cap.numero}: ${cap.titulo}`;
             document.getElementById('libro-texto').innerText = cap.contenido;
+            
+            // Barra de progreso
             const progreso = ((indiceActual + 1) / listaCapitulos.length) * 100;
             document.getElementById('progress-bar').style.width = progreso + '%';
+            
+            // Scroll hacia arriba
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
             document.getElementById('btn-ant').disabled = (indiceActual === 0);
             document.getElementById('btn-sig').disabled = (indiceActual === listaCapitulos.length - 1);
-            window.scrollTo(0,0);
         }
 
         document.getElementById('btn-ant').onclick = () => { if(indiceActual > 0) { indiceActual--; mostrarCapitulo(document.getElementById('libro-titulo-display').innerText); } };
@@ -181,7 +197,7 @@
                 cap: listaCapitulos[indiceActual].numero,
                 fecha: serverTimestamp()
             });
-            alert("Comentario enviado");
+            alert("Enviado a Miguel");
             document.getElementById('texto-comentario').value = "";
         };
 
