@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miguel Hernández - Autor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-user-select: none; user-select: none; background-color: #f8f9fa; font-family: sans-serif; }
+        .verified-badge { background-color: #0095f6; color: white; border-radius: 50%; padding: 2px; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 5px; }
+        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 3rem; font-weight: bold; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 10; white-space: nowrap; text-align: center; width: 100%; }
+        .prose-serif { font-family: 'Georgia', serif; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="login-screen" class="fixed inset-0 bg-white z-[100] flex items-center justify-center p-6 transition-all duration-500">
+        <div class="max-w-sm w-full text-center">
+            <div class="w-20 h-20 bg-gray-900 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-xl">MH</div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Acceso Privado</h1>
+            <input type="email" id="email-input" placeholder="tu@correo.com" class="w-full p-4 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-400">
+            <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-100">Entrar</button>
+            <p id="error-msg" class="text-red-500 text-xs mt-4 hidden">Correo no autorizado.</p>
+        </div>
+    </div>
+
+    <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden">
+        <header class="p-8 border-b border-gray-100 text-center">
+            <div class="flex flex-col items-center">
+                <div class="w-24 h-24 bg-gray-200 rounded-full mb-4 flex items-center justify-center border-4 border-white shadow-sm overflow-hidden">
+                    <span class="text-gray-400 text-3xl font-bold">MH</span>
+                </div>
+                <div class="flex items-center justify-center">
+                    <h1 class="text-xl font-bold text-gray-800">Miguel Hernández</h1>
+                    <span class="verified-badge">✓</span>
+                </div>
+                <p class="text-gray-500 text-sm mt-1">Escritor Independiente</p>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Mis Obras</h2>
+            <div id="contenedor-libros" class="grid grid-cols-2 gap-6"></div>
+        </main>
+    </div>
+
+    <div id="lector-libro" class="fixed inset-0 bg-white z-50 hidden overflow-y-auto">
+        <nav class="sticky top-0 bg-white/90 backdrop-blur-md border-b p-4 flex justify-between items-center z-20">
+            <button id="btn-cerrar" class="text-gray-500 font-medium text-sm">✕ Salir</button>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Lectura Protegida</span>
+            <div class="w-10"></div>
+        </nav>
+        
+        <div class="watermark">MIGUEL HERNÁNDEZ - PROPIEDAD INTELECTUAL</div>
+        
+        <article class="max-w-prose mx-auto p-8 pt-12 pb-32">
+            <h1 id="libro-titulo-display" class="text-3xl font-serif font-bold mb-8 text-gray-900"></h1>
+            <div id="libro-texto" class="text-xl leading-relaxed prose-serif text-gray-800 space-y-8"></div>
+
+            <div class="mt-20 border-t pt-10 text-center">
+                <p class="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest">¿Qué te pareció?</p>
+                <div class="flex justify-center gap-10 mb-10">
+                    <button id="btn-like" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-125">👍</button>
+                    <button id="btn-dislike" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-125">👎</button>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-6">
+                    <textarea id="texto-comentario" placeholder="Escribe un mensaje para Miguel..." class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 resize-none h-24 italic"></textarea>
+                    <button id="btn-comentar" class="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest">Enviar Comentario</button>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w",
+            authDomain: "libreria-miguel.firebaseapp.com",
+            projectId: "libreria-miguel",
+            storageBucket: "libreria-miguel.firebasestorage.app",
+            messagingSenderId: "490418742035",
+            appId: "1:490418742035:web:38495fc41da972f8b070e6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let lectorActual = "";
+
+        // LOGIN
+        document.getElementById('btn-entrar').onclick = async () => {
+            const email = document.getElementById('email-input').value.toLowerCase().trim();
+            const docRef = doc(db, "lectores_autorizados", email);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                lectorActual = email;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-main').classList.remove('hidden');
+                cargarBiblioteca();
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+            }
+        };
+
+        // CARGAR BIBLIOTECA
+        async function cargarBiblioteca() {
+            const contenedor = document.getElementById('contenedor-libros');
+            const querySnapshot = await getDocs(collection(db, "libros"));
+            contenedor.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const libro = doc.data();
+                contenedor.innerHTML += `
+                    <div class="group cursor-pointer" onclick="abrirLibro('${doc.id}', '${libro.Titulo}')">
+                        <div class="aspect-[2/3] bg-gray-100 rounded-xl shadow-lg mb-3 overflow-hidden border">
+                            <img src="${libro.portadaURL}" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="font-bold text-sm text-gray-800">${libro.Titulo}</h3>
+                        <p class="text-[10px] text-blue-500 font-bold uppercase mt-1 text-left">Leer ahora</p>
+                    </div>`;
+            });
+        }
+
+        // ABRIR LIBRO Y CARGAR CAPÍTULOS
+        window.abrirLibro = async (id, titulo) => {
+            const capRef = collection(db, "libros", id, "capitulos");
+            const q = query(capRef, orderBy("numero", "asc"));
+            const querySnapshot = await getDocs(q);
+            
+            let contenidoHTML = "";
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                contenidoHTML += `<div class="mb-12">
+                    <h2 class="text-blue-600 font-bold text-xs uppercase mb-4 tracking-widest">Capítulo ${data.numero}: ${data.titulo}</h2>
+                    <p class="whitespace-pre-line">${data.contenido}</p>
+                </div>`;
+            });
+
+            document.getElementById('libro-titulo-display').innerText = titulo;
+            document.getElementById('libro-texto').innerHTML = contenidoHTML;
+            document.getElementById('lector-libro').classList.remove('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+            window.scrollTo(0,0);
+        };
+
+        // FEEDBACK
+        document.getElementById('btn-like').onclick = () => enviarReaccion('like');
+        document.getElementById('btn-dislike').onclick = () => enviarReaccion('dislike');
+
+        async function enviarReaccion(tipo) {
+            await addDoc(collection(db, "reacciones"), {
+                lector: lectorActual,
+                voto: tipo,
+                libro: document.getElementById('libro-titulo-display').innerText,
+                fecha: serverTimestamp()
+            });
+            alert("¡Gracias por tu opinión!");
+        }
+
+        document.getElementById('btn-comentar').onclick = async () => {
+            const msj = document.getElementById('texto-comentario').value;
+            if(!msj.trim()) return;
+            await addDoc(collection(db, "comentarios"), {
+                lector: lectorActual,
+                mensaje: msj,
+                libro: document.getElementById('libro-titulo-display').innerText,
+                fecha: serverTimestamp()
+            });
+            alert("Enviado a Miguel");
+            document.getElementById('texto-comentario').value = "";
+        };
+
+        document.getElementById('btn-cerrar').onclick = () => {
+            document.getElementById('lector-libro').classList.add('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
