@@ -10,21 +10,22 @@
         .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
         .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 2.5rem; font-weight: bold; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 10; white-space: nowrap; text-align: center; width: 100%; }
         .prose-serif { font-family: 'Georgia', serif; }
-        #progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.05); z-index: 100; }
+        #progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.05); z-index: 110; }
         #progress-bar { height: 100%; width: 0%; background: #0095f6; transition: width 0.3s ease; }
         .btn-nav { @apply bg-gray-100 text-gray-800 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest active:scale-90 transition-all disabled:opacity-20; }
+        .dot-online { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="login-screen" class="fixed inset-0 bg-white z-[110] flex items-center justify-center p-6 transition-all duration-500">
+    <div id="login-screen" class="fixed inset-0 bg-white z-[120] flex items-center justify-center p-6 transition-all duration-500">
         <div class="max-w-sm w-full text-center">
             <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">MH</div>
             <h1 class="text-2xl font-bold text-gray-800 mb-2">Acceso VIP</h1>
             <p class="text-gray-400 text-sm mb-8 italic">Introduce tu correo para continuar</p>
-            <input type="email" id="email-input" placeholder="tu@correo.com" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400 transition-colors">
+            <input type="email" id="email-input" placeholder="tu@correo.com" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400">
             <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform">Entrar</button>
-            <p id="error-msg" class="text-red-500 text-xs mt-4 hidden">Acceso no autorizado</p>
+            <p id="error-msg" class="text-red-500 text-xs mt-4 hidden">Correo no autorizado</p>
         </div>
     </div>
 
@@ -34,11 +35,14 @@
                 <span class="text-gray-300 text-3xl font-bold">MH</span>
             </div>
             <div class="flex items-center justify-center mb-1">
-                <h1 class="text-xl font-bold text-gray-800 tracking-tight">Miguel Hernández</h1>
+                <h1 class="text-xl font-bold text-gray-800">Miguel Hernández</h1>
                 <svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg>
             </div>
-            <p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Escritor Independiente</p>
-            <button onclick="cerrarSesion()" class="text-[9px] text-gray-300 mt-6 border px-3 py-1 rounded-full hover:text-red-400 transition-colors">Cerrar Sesión</button>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <span class="dot-online animate-pulse"></span>
+                <span id="contador-activos" class="text-[9px] font-black text-gray-400 uppercase tracking-widest">1 Lector activo</span>
+            </div>
+            <button onclick="cerrarSesion()" class="text-[9px] text-gray-300 mt-6 border px-3 py-1 rounded-full">Cerrar Sesión</button>
         </header>
 
         <main class="p-6">
@@ -49,35 +53,30 @@
 
     <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto">
         <div id="progress-container"><div id="progress-bar"></div></div>
-        
         <nav class="sticky top-0 bg-white/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
             <button id="btn-cerrar" class="text-gray-400 text-sm font-bold">✕ SALIR</button>
             <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Lectura Protegida</span>
             <div class="w-10"></div>
         </nav>
-        
-        <div class="watermark">MIGUEL HERNÁNDEZ • ORIGINAL</div>
-        
+        <div class="watermark text-center">MIGUEL HERNÁNDEZ • ORIGINAL</div>
         <article class="max-w-prose mx-auto p-8 pt-10 pb-40">
-            <h1 id="libro-titulo-display" class="text-4xl font-serif font-bold mb-4 text-gray-900 leading-tight text-center"></h1>
-            <div id="cap-actual-num" class="text-blue-500 text-[10px] font-black uppercase mb-12 tracking-[0.3em] text-center"></div>
+            <h1 id="libro-titulo-display" class="text-4xl font-serif font-bold mb-4 text-gray-900 leading-tight"></h1>
+            <div id="cap-actual-num" class="text-blue-500 text-[10px] font-black uppercase mb-12 tracking-[0.3em]"></div>
+            <div id="libro-texto" class="text-xl leading-[1.8] prose-serif text-gray-800 mb-20 whitespace-pre-line text-justify"></div>
             
-            <div id="libro-texto" class="text-xl leading-[1.8] prose-serif text-gray-800 mb-20 whitespace-pre-line"></div>
-
             <div class="flex justify-between gap-4 py-10 border-t border-gray-100 mb-10">
                 <button id="btn-ant" class="btn-nav flex-1">Anterior</button>
                 <button id="btn-sig" class="btn-nav flex-1 bg-gray-900 text-white font-bold">Siguiente</button>
             </div>
 
-            <div class="border-t border-gray-100 pt-12 text-center">
-                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8">¿Qué tal este capítulo?</p>
+            <div class="text-center pt-10 border-t border-gray-100">
+                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8">¿Qué tal el capítulo?</p>
                 <div class="flex justify-center gap-12 mb-12">
-                    <button id="btn-like" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-150">👍</button>
-                    <button id="btn-dislike" class="text-4xl filter grayscale hover:grayscale-0 transition active:scale-150">👎</button>
+                    <button id="btn-like" class="text-4xl filter grayscale hover:grayscale-0 transition">👍</button>
+                    <button id="btn-dislike" class="text-4xl filter grayscale hover:grayscale-0 transition">👎</button>
                 </div>
-                
                 <div class="bg-gray-50 rounded-[2rem] p-6">
-                    <textarea id="texto-comentario" placeholder="Escribe un mensaje privado para Miguel..." class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 resize-none h-24 italic"></textarea>
+                    <textarea id="texto-comentario" placeholder="Escribe un comentario..." class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 h-24 italic resize-none"></textarea>
                     <button id="btn-comentar" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest">Enviar Comentario</button>
                 </div>
             </div>
@@ -87,6 +86,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getDatabase, ref, onValue, set, onDisconnect, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w",
@@ -94,11 +94,13 @@
             projectId: "libreria-miguel",
             storageBucket: "libreria-miguel.firebasestorage.app",
             messagingSenderId: "490418742035",
-            appId: "1:490418742035:web:38495fc41da972f8b070e6"
+            appId: "1:490418742035:web:38495fc41da972f8b070e6",
+            databaseURL: "https://libreria-miguel-default-rtdb.firebaseio.com" // Asegúrate que esta URL sea la de tu Realtime Database
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const rdb = getDatabase(app);
         
         let lectorEmail = localStorage.getItem('lector_email') || "";
         let listaCapitulos = [];
@@ -106,12 +108,7 @@
         let idLibroActual = localStorage.getItem('ultimo_libro_id') || "";
         let tituloLibroActual = localStorage.getItem('ultimo_libro_titulo') || "";
 
-        window.onload = () => { 
-            if(lectorEmail) { 
-                loginExitoso(); 
-                if(idLibroActual) { prepararLectura(idLibroActual, tituloLibroActual, true); }
-            } 
-        };
+        window.onload = () => { if(lectorEmail) { loginExitoso(); if(idLibroActual) { prepararLectura(idLibroActual, tituloLibroActual, true); } } };
 
         document.getElementById('btn-entrar').onclick = async () => {
             const email = document.getElementById('email-input').value.toLowerCase().trim();
@@ -127,6 +124,18 @@
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-main').classList.remove('hidden');
             cargarBiblioteca();
+            activarPresencia();
+        }
+
+        function activarPresencia() {
+            const idSesion = lectorEmail.replace(/[.#$[\]]/g, "_");
+            const userRef = ref(rdb, 'activos/' + idSesion);
+            set(userRef, true);
+            onDisconnect(userRef).remove();
+            onValue(ref(rdb, 'activos'), (snap) => {
+                const total = snap.size || 1;
+                document.getElementById('contador-activos').innerText = `${total} Lector${total > 1 ? 'es' : ''} en línea`;
+            });
         }
 
         window.cerrarSesion = () => { localStorage.clear(); location.reload(); };
@@ -153,15 +162,12 @@
             tituloLibroActual = titulo;
             localStorage.setItem('ultimo_libro_id', id);
             localStorage.setItem('ultimo_libro_titulo', titulo);
-
             const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc"));
             const querySnapshot = await getDocs(q);
             listaCapitulos = [];
             querySnapshot.forEach(doc => listaCapitulos.push(doc.data()));
-
             if(!continuar) { indiceActual = 0; }
             mostrarCapitulo(titulo);
-            
             document.getElementById('lector-libro').classList.remove('hidden');
             document.getElementById('app-main').classList.add('hidden');
         };
@@ -171,14 +177,11 @@
             document.getElementById('libro-titulo-display').innerText = tituloLibro;
             document.getElementById('cap-actual-num').innerText = `Capítulo ${cap.numero}: ${cap.titulo}`;
             document.getElementById('libro-texto').innerText = cap.contenido;
-            
             localStorage.setItem('ultimo_cap_indice', indiceActual);
-            
-            // Barra progreso
             const progreso = ((indiceActual + 1) / listaCapitulos.length) * 100;
             document.getElementById('progress-bar').style.width = progreso + '%';
             
-            // FIX SCROLL: MANDAR ARRIBA
+            // EL FIX DEL SCROLL
             document.getElementById('lector-libro').scrollTo(0,0);
             window.scrollTo(0,0);
 
@@ -189,39 +192,23 @@
         document.getElementById('btn-ant').onclick = () => { if(indiceActual > 0) { indiceActual--; mostrarCapitulo(tituloLibroActual); } };
         document.getElementById('btn-sig').onclick = () => { if(indiceActual < listaCapitulos.length - 1) { indiceActual++; mostrarCapitulo(tituloLibroActual); } };
 
-        // REACCIONES Y COMENTARIOS
-        document.getElementById('btn-like').onclick = () => registrarVoto('like');
-        document.getElementById('btn-dislike').onclick = () => registrarVoto('dislike');
+        document.getElementById('btn-like').onclick = () => enviarFeedback('like');
+        document.getElementById('btn-dislike').onclick = () => enviarFeedback('dislike');
 
-        async function registrarVoto(tipo) {
-            await addDoc(collection(db, "reacciones"), {
-                lector: lectorEmail,
-                voto: tipo,
-                libro: idLibroActual,
-                cap: listaCapitulos[indiceActual].numero,
-                fecha: serverTimestamp()
-            });
-            alert("¡Gracias por tu opinión!");
+        async function enviarFeedback(voto) {
+            await addDoc(collection(db, "reacciones"), { lector: lectorEmail, voto, libro: idLibroActual, cap: listaCapitulos[indiceActual].numero, fecha: serverTimestamp() });
+            alert("¡Gracias!");
         }
 
         document.getElementById('btn-comentar').onclick = async () => {
             const msj = document.getElementById('texto-comentario').value;
             if(!msj.trim()) return;
-            await addDoc(collection(db, "comentarios"), {
-                lector: lectorEmail,
-                mensaje: msj,
-                libro: idLibroActual,
-                cap: listaCapitulos[indiceActual].numero,
-                fecha: serverTimestamp()
-            });
-            alert("Comentario enviado con éxito");
+            await addDoc(collection(db, "comentarios"), { lector: lectorEmail, mensaje: msj, libro: idLibroActual, cap: listaCapitulos[indiceActual].numero, fecha: serverTimestamp() });
+            alert("Enviado");
             document.getElementById('texto-comentario').value = "";
         };
 
-        document.getElementById('btn-cerrar').onclick = () => {
-            document.getElementById('lector-libro').classList.add('hidden');
-            document.getElementById('app-main').classList.remove('hidden');
-        };
+        document.getElementById('btn-cerrar').onclick = () => { document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
     </script>
 </body>
 </html>
