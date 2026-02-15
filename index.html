@@ -1,214 +1,303 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miguel Hernández - Autor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { -webkit-user-select: none; user-select: none; background-color: #f8f9fa; font-family: sans-serif; overflow-x: hidden; }
-        .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
-        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 2.5rem; font-weight: bold; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 10; white-space: nowrap; text-align: center; width: 100%; }
-        .prose-serif { font-family: 'Georgia', serif; }
-        #progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.05); z-index: 110; }
-        #progress-bar { height: 100%; width: 0%; background: #0095f6; transition: width 0.3s ease; }
-        .btn-nav { @apply bg-gray-100 text-gray-800 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest active:scale-90 transition-all disabled:opacity-20; }
-        .dot-online { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miguel Hernández - Autor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/page-flip@2.0.7/dist/page-flip.browser.min.js"></script>
+  <style>
+    body { -webkit-user-select: none; user-select: none; background-color: #f8f9fa; font-family: sans-serif; overflow-x: hidden; }
+    .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
+    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 2.5rem; font-weight: bold; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 10; white-space: nowrap; text-align: center; width: 100%; }
+    .prose-serif { font-family: 'Georgia', serif; }
+    #progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.05); z-index: 110; }
+    #progress-bar { height: 100%; width: 0%; background: #0095f6; transition: width 0.3s ease; }
+    .dot-online { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
+    #bienvenida-personal { font-size: 0.9rem; color: #4b5563; margin-top: 0.5rem; font-style: italic; }
+    .page { padding: 40px 50px; font-size: 1.15rem; line-height: 1.85; text-align: justify; background: white; height: 100%; box-sizing: border-box; }
+  </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="login-screen" class="fixed inset-0 bg-white z-[120] flex items-center justify-center p-6 transition-all duration-500">
-        <div class="max-w-sm w-full text-center">
-            <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">MH</div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Acceso VIP</h1>
-            <p class="text-gray-400 text-sm mb-8 italic">Introduce tu correo para continuar</p>
-            <input type="email" id="email-input" placeholder="tu@correo.com" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400">
-            <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform">Entrar</button>
-            <p id="error-msg" class="text-red-500 text-xs mt-4 hidden">Correo no autorizado</p>
-        </div>
+  <!-- LOGIN -->
+  <div id="login-screen" class="fixed inset-0 bg-white z-[120] flex items-center justify-center p-6">
+    <div class="max-w-sm w-full text-center">
+      <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">MH</div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenid@ a mi biblioteca beta</h1>
+      <p class="text-gray-400 text-sm mb-6">Versión privada – solo para quienes conocen el link 😉</p>
+      <input type="text" id="nombre-input" placeholder="Tu nombre o apodo" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400">
+      <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform">Entrar</button>
+      <p id="error-msg" class="text-red-500 text-xs mt-4 hidden">Por favor, escribe un nombre</p>
     </div>
+  </div>
 
-    <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden">
-        <header class="p-10 text-center">
-            <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 border-4 border-white shadow-md flex items-center justify-center overflow-hidden">
-                <span class="text-gray-300 text-3xl font-bold">MH</span>
-            </div>
-            <div class="flex items-center justify-center mb-1">
-                <h1 class="text-xl font-bold text-gray-800">Miguel Hernández</h1>
-                <svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg>
-            </div>
-            <div class="flex items-center justify-center gap-2 mt-2">
-                <span class="dot-online animate-pulse"></span>
-                <span id="contador-activos" class="text-[9px] font-black text-gray-400 uppercase tracking-widest">1 Lector activo</span>
-            </div>
-            <button onclick="cerrarSesion()" class="text-[9px] text-gray-300 mt-6 border px-3 py-1 rounded-full">Cerrar Sesión</button>
-        </header>
+  <!-- PANTALLA PRINCIPAL -->
+  <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden">
+    <header class="p-10 text-center">
+      <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 border-4 border-white shadow-md flex items-center justify-center overflow-hidden">
+        <span class="text-gray-300 text-3xl font-bold">MH</span>
+      </div>
+      <div class="flex items-center justify-center mb-1">
+        <h1 class="text-xl font-bold text-gray-800">Miguel Hernández</h1>
+        <svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg>
+      </div>
+      <p id="bienvenida-personal" class="hidden">¡Bienvenid@, Miguel! Gracias por estar aquí.</p>
+      <div class="flex items-center justify-center gap-2 mt-4">
+        <span class="dot-online animate-pulse"></span>
+        <span id="contador-activos" class="text-[9px] font-black text-gray-400 uppercase tracking-widest">1 Lector activo</span>
+      </div>
+      <button onclick="cerrarSesion()" class="text-[9px] text-gray-300 mt-6 border px-3 py-1 rounded-full">Cerrar Sesión</button>
+    </header>
 
-        <main class="p-6">
-            <h2 class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8 text-left">Biblioteca Privada</h2>
-            <div id="contenedor-libros" class="grid grid-cols-2 gap-8"></div>
-        </main>
-    </div>
+    <main class="p-6">
+      <h2 class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8 text-left">BIBLIOTECA PRIVADA</h2>
+      <div id="contenedor-libros" class="grid grid-cols-2 gap-8"></div>
+    </main>
+  </div>
 
-    <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto">
-        <div id="progress-container"><div id="progress-bar"></div></div>
-        <nav class="sticky top-0 bg-white/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
-            <button id="btn-cerrar" class="text-gray-400 text-sm font-bold">✕ SALIR</button>
-            <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Lectura Protegida</span>
-            <div class="w-10"></div>
-        </nav>
-        <div class="watermark text-center">MIGUEL HERNÁNDEZ • ORIGINAL</div>
-        <article class="max-w-prose mx-auto p-8 pt-10 pb-40">
-            <h1 id="libro-titulo-display" class="text-4xl font-serif font-bold mb-4 text-gray-900 leading-tight"></h1>
-            <div id="cap-actual-num" class="text-blue-500 text-[10px] font-black uppercase mb-12 tracking-[0.3em]"></div>
-            <div id="libro-texto" class="text-xl leading-[1.8] prose-serif text-gray-800 mb-20 whitespace-pre-line text-justify"></div>
-            
-            <div class="flex justify-between gap-4 py-10 border-t border-gray-100 mb-10">
-                <button id="btn-ant" class="btn-nav flex-1">Anterior</button>
-                <button id="btn-sig" class="btn-nav flex-1 bg-gray-900 text-white font-bold">Siguiente</button>
-            </div>
+  <!-- LECTOR CON FLIP BOOK -->
+  <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto">
+    <div id="progress-container"><div id="progress-bar"></div></div>
+    
+    <nav class="sticky top-0 bg-white/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
+      <button id="btn-cerrar" class="text-gray-400 text-sm font-bold">✕ SALIR</button>
+      <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Lectura Protegida</span>
+      <button id="btn-bookmark" class="text-2xl hover:text-yellow-500 transition">🔖</button>
+    </nav>
 
-            <div class="text-center pt-10 border-t border-gray-100">
-                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-8">¿Qué tal el capítulo?</p>
-                <div class="flex justify-center gap-12 mb-12">
-                    <button id="btn-like" class="text-4xl filter grayscale hover:grayscale-0 transition">👍</button>
-                    <button id="btn-dislike" class="text-4xl filter grayscale hover:grayscale-0 transition">👎</button>
-                </div>
-                <div class="bg-gray-50 rounded-[2rem] p-6">
-                    <textarea id="texto-comentario" placeholder="Escribe un comentario..." class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 h-24 italic resize-none"></textarea>
-                    <button id="btn-comentar" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest">Enviar Comentario</button>
-                </div>
-            </div>
-        </article>
-    </div>
+    <div class="watermark text-center">MIGUEL HERNÁNDEZ • ORIGINAL</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getDatabase, ref, onValue, set, onDisconnect, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <article class="max-w-4xl mx-auto p-8 pt-10 pb-40">
+      <div id="flipbook-container" class="mx-auto rounded-3xl overflow-hidden shadow-2xl" style="width: 90%; max-width: 820px; height: 72vh; background: white;"></div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w",
-            authDomain: "libreria-miguel.firebaseapp.com",
-            projectId: "libreria-miguel",
-            storageBucket: "libreria-miguel.firebasestorage.app",
-            messagingSenderId: "490418742035",
-            appId: "1:490418742035:web:38495fc41da972f8b070e6",
-            databaseURL: "https://libreria-miguel-default-rtdb.firebaseio.com" // Asegúrate que esta URL sea la de tu Realtime Database
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const rdb = getDatabase(app);
+      <!-- Valoración al final del libro -->
+      <div id="rating-section" class="hidden mt-12 p-8 bg-gray-50 rounded-3xl">
+        <h2 class="text-3xl font-bold text-center mb-3">¡Gracias por llegar al final!</h2>
+        <p class="text-center text-gray-600 mb-8">¿Qué te pareció <span id="titulo-libro-final" class="font-semibold"></span>?</p>
         
-        let lectorEmail = localStorage.getItem('lector_email') || "";
-        let listaCapitulos = [];
-        let indiceActual = parseInt(localStorage.getItem('ultimo_cap_indice')) || 0;
-        let idLibroActual = localStorage.getItem('ultimo_libro_id') || "";
-        let tituloLibroActual = localStorage.getItem('ultimo_libro_titulo') || "";
+        <div id="stars-container" class="flex justify-center gap-4 text-6xl mb-10 cursor-pointer"></div>
+        
+        <textarea id="comentario-final" class="w-full p-5 border-2 border-gray-200 rounded-3xl text-lg resize-none h-32" placeholder="Tu comentario o sugerencia (opcional)"></textarea>
+        
+        <button id="btn-enviar-valoracion" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-3xl text-lg transition">Enviar valoración</button>
+      </div>
+    </article>
+  </div>
 
-        window.onload = () => { if(lectorEmail) { loginExitoso(); if(idLibroActual) { prepararLectura(idLibroActual, tituloLibroActual, true); } } };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getDatabase, ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        document.getElementById('btn-entrar').onclick = async () => {
-            const email = document.getElementById('email-input').value.toLowerCase().trim();
-            const docSnap = await getDoc(doc(db, "lectores_autorizados", email));
-            if (docSnap.exists()) {
-                lectorEmail = email;
-                localStorage.setItem('lector_email', email);
-                loginExitoso();
-            } else { document.getElementById('error-msg').classList.remove('hidden'); }
+    const firebaseConfig = { /* tu config actual */ 
+      apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w",
+      authDomain: "libreria-miguel.firebaseapp.com",
+      projectId: "libreria-miguel",
+      storageBucket: "libreria-miguel.firebasestorage.app",
+      messagingSenderId: "490418742035",
+      appId: "1:490418742035:web:38495fc41da972f8b070e6",
+      databaseURL: "https://libreria-miguel-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const rdb = getDatabase(app);
+
+    let lectorNombre = localStorage.getItem('lector_nombre') || "";
+    let listaCapitulos = [];
+    let idLibroActual = "";
+    let tituloLibroActual = "";
+    let pageFlip = null;
+    let currentRating = 0;
+
+    window.onload = () => {
+      if (lectorNombre) loginExitoso();
+    };
+
+    // ==================== LOGIN ====================
+    document.getElementById('btn-entrar').onclick = () => {
+      const nombre = document.getElementById('nombre-input').value.trim();
+      if (!nombre) { document.getElementById('error-msg').classList.remove('hidden'); return; }
+      lectorNombre = nombre;
+      localStorage.setItem('lector_nombre', nombre);
+      loginExitoso();
+    };
+
+    function loginExitoso() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-main').classList.remove('hidden');
+      document.getElementById('bienvenida-personal').textContent = `¡Bienvenid@, ${lectorNombre}! Gracias por estar aquí.`;
+      document.getElementById('bienvenida-personal').classList.remove('hidden');
+      cargarBiblioteca();
+      activarPresencia();
+    }
+
+    function activarPresencia() {
+      const idSesion = lectorNombre.replace(/[.#$[\]]/g, "_");
+      const userRef = ref(rdb, 'activos/' + idSesion);
+      set(userRef, { nombre: lectorNombre, conectado: true });
+      onDisconnect(userRef).remove();
+      onValue(ref(rdb, 'activos'), (snap) => {
+        const total = snap.size || 1;
+        document.getElementById('contador-activos').innerText = `${total} Lector${total > 1 ? 'es' : ''} en línea`;
+      });
+    }
+
+    window.cerrarSesion = () => { localStorage.clear(); location.reload(); };
+
+    // ==================== BIBLIOTECA CON CANDADOS ====================
+    async function cargarBiblioteca() {
+      const querySnapshot = await getDocs(collection(db, "libros"));
+      const contenedor = document.getElementById('contenedor-libros');
+      contenedor.innerHTML = "";
+
+      querySnapshot.forEach((doc) => {
+        const libro = doc.data();
+        const t = libro.titulo || libro.Titulo || "Sin Título";
+        const publicado = libro.publicado === true;
+
+        let html = `<div class="relative">`;
+        html += `<div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-4 overflow-hidden border-4 border-white relative">`;
+        html += `<img src="${libro.portadaURL}" class="w-full h-full object-cover">`;
+
+        if (!publicado) {
+          html += `<div class="absolute inset-0 bg-black/60 flex items-center justify-center"><span class="text-white text-6xl">🔒</span></div>`;
+          html += `</div><h3 class="font-bold text-sm text-gray-800 text-center">${t}</h3><p class="text-xs text-gray-500 text-center mt-1">Próximamente</p>`;
+        } else {
+          html += `</div><h3 class="font-bold text-sm text-gray-800 text-center">${t}</h3>`;
+          html = `<div class="cursor-pointer" onclick="prepararLectura('${doc.id}', '${t.replace(/'/g, "\\'")}')">${html}</div>`;
+        }
+        contenedor.innerHTML += html;
+      });
+    }
+
+    // ==================== LECTOR CON FLIP BOOK + MARCADOR + VALORACIÓN FINAL ====================
+    window.prepararLectura = async (id, titulo) => {
+      idLibroActual = id;
+      tituloLibroActual = titulo;
+      localStorage.setItem('ultimo_libro_id', id);
+      localStorage.setItem('ultimo_libro_titulo', titulo);
+
+      const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc"));
+      const snapshot = await getDocs(q);
+      listaCapitulos = [];
+      snapshot.forEach(doc => listaCapitulos.push(doc.data()));
+
+      // Crear páginas
+      const pagesHTML = listaCapitulos.map(cap => `
+        <div class="page">
+          <h2 class="text-2xl font-bold mb-8 text-center">Capítulo ${cap.numero}: ${cap.titulo}</h2>
+          <div class="whitespace-pre-line">${cap.contenido.replace(/\n/g, '<br>')}</div>
+        </div>
+      `);
+
+      // Limpiar contenedor y destruir instancia anterior
+      const container = document.getElementById('flipbook-container');
+      container.innerHTML = '';
+      if (pageFlip) pageFlip.destroy();
+
+      // Crear flip book
+      pageFlip = new StPageFlip(container, {
+        width: 800,
+        height: 1100,
+        size: "stretch",
+        drawShadow: true,
+        flippingTime: 900,
+        usePortrait: true,
+        startPage: 0,
+        showPageCorners: true,
+        useMouseEvents: true,
+        mobileScrollSupport: true
+      });
+
+      pageFlip.loadFromHTML(pagesHTML);
+
+      // === MARCADOR (separador) ===
+      const bookmarkKey = `bookmark_${lectorNombre}_${id}`;
+      const savedPage = localStorage.getItem(bookmarkKey);
+      if (savedPage) pageFlip.flipTo(parseInt(savedPage));
+
+      // Actualizar progreso y mostrar valoración al llegar al final
+      pageFlip.on('flip', (e) => {
+        const current = e.data;
+        const total = pageFlip.getPageCount();
+        const progreso = ((current + 1) / total) * 100;
+        document.getElementById('progress-bar').style.width = progreso + '%';
+
+        if (current === total - 1) {
+          document.getElementById('rating-section').classList.remove('hidden');
+          document.getElementById('titulo-libro-final').textContent = titulo;
+        } else {
+          document.getElementById('rating-section').classList.add('hidden');
+        }
+      });
+
+      // Botón marcador
+      document.getElementById('btn-bookmark').onclick = () => {
+        const current = pageFlip.getCurrentPageIndex();
+        localStorage.setItem(bookmarkKey, current);
+        alert("📖 Página marcada como separador. La próxima vez continuarás desde aquí.");
+      };
+
+      // Mostrar lector
+      document.getElementById('lector-libro').classList.remove('hidden');
+      document.getElementById('app-main').classList.add('hidden');
+    };
+
+    // ==================== ESTRELLAS Y ENVÍO DE VALORACIÓN ====================
+    function renderStars(rating = 0) {
+      const container = document.getElementById('stars-container');
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.textContent = '⭐';
+        star.className = i <= rating ? 'text-yellow-400' : 'text-gray-300';
+        star.dataset.value = i;
+        star.onclick = () => {
+          currentRating = i;
+          renderStars(i);
         };
+        container.appendChild(star);
+      }
+    }
 
-        function loginExitoso() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-main').classList.remove('hidden');
-            cargarBiblioteca();
-            activarPresencia();
-        }
+    document.getElementById('btn-enviar-valoracion').onclick = async () => {
+      if (currentRating === 0) {
+        alert("Por favor selecciona al menos una estrella");
+        return;
+      }
+      const comentario = document.getElementById('comentario-final').value.trim();
 
-        function activarPresencia() {
-            const idSesion = lectorEmail.replace(/[.#$[\]]/g, "_");
-            const userRef = ref(rdb, 'activos/' + idSesion);
-            set(userRef, true);
-            onDisconnect(userRef).remove();
-            onValue(ref(rdb, 'activos'), (snap) => {
-                const total = snap.size || 1;
-                document.getElementById('contador-activos').innerText = `${total} Lector${total > 1 ? 'es' : ''} en línea`;
-            });
-        }
+      await addDoc(collection(db, "valoraciones"), {
+        libro: idLibroActual,
+        lector: lectorNombre,
+        estrellas: currentRating,
+        comentario: comentario,
+        fecha: serverTimestamp()
+      });
 
-        window.cerrarSesion = () => { localStorage.clear(); location.reload(); };
+      alert("¡Gracias por tu valoración! Significa mucho para mí ❤️");
+      document.getElementById('rating-section').classList.add('hidden');
+      // Opcional: cerrar lector
+      // document.getElementById('lector-libro').classList.add('hidden');
+      // document.getElementById('app-main').classList.remove('hidden');
+    };
 
-        async function cargarBiblioteca() {
-            const querySnapshot = await getDocs(collection(db, "libros"));
-            const contenedor = document.getElementById('contenedor-libros');
-            contenedor.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                const libro = doc.data();
-                const t = libro.Titulo || libro.titulo || "Sin Título";
-                contenedor.innerHTML += `
-                    <div class="cursor-pointer" onclick="prepararLectura('${doc.id}', '${t}')">
-                        <div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-4 overflow-hidden border-4 border-white">
-                            <img src="${libro.portadaURL}" class="w-full h-full object-cover">
-                        </div>
-                        <h3 class="font-bold text-sm text-gray-800 text-center">${t}</h3>
-                    </div>`;
-            });
-        }
+    // Cerrar lector
+    document.getElementById('btn-cerrar').onclick = () => {
+      if (pageFlip) pageFlip.destroy();
+      document.getElementById('lector-libro').classList.add('hidden');
+      document.getElementById('app-main').classList.remove('hidden');
+    };
 
-        window.prepararLectura = async (id, titulo, continuar = false) => {
-            idLibroActual = id;
-            tituloLibroActual = titulo;
-            localStorage.setItem('ultimo_libro_id', id);
-            localStorage.setItem('ultimo_libro_titulo', titulo);
-            const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc"));
-            const querySnapshot = await getDocs(q);
-            listaCapitulos = [];
-            querySnapshot.forEach(doc => listaCapitulos.push(doc.data()));
-            if(!continuar) { indiceActual = 0; }
-            mostrarCapitulo(titulo);
-            document.getElementById('lector-libro').classList.remove('hidden');
-            document.getElementById('app-main').classList.add('hidden');
-        };
-
-        function mostrarCapitulo(tituloLibro) {
-            const cap = listaCapitulos[indiceActual];
-            document.getElementById('libro-titulo-display').innerText = tituloLibro;
-            document.getElementById('cap-actual-num').innerText = `Capítulo ${cap.numero}: ${cap.titulo}`;
-            document.getElementById('libro-texto').innerText = cap.contenido;
-            localStorage.setItem('ultimo_cap_indice', indiceActual);
-            const progreso = ((indiceActual + 1) / listaCapitulos.length) * 100;
-            document.getElementById('progress-bar').style.width = progreso + '%';
-            
-            // EL FIX DEL SCROLL
-            document.getElementById('lector-libro').scrollTo(0,0);
-            window.scrollTo(0,0);
-
-            document.getElementById('btn-ant').disabled = (indiceActual === 0);
-            document.getElementById('btn-sig').disabled = (indiceActual === listaCapitulos.length - 1);
-        }
-
-        document.getElementById('btn-ant').onclick = () => { if(indiceActual > 0) { indiceActual--; mostrarCapitulo(tituloLibroActual); } };
-        document.getElementById('btn-sig').onclick = () => { if(indiceActual < listaCapitulos.length - 1) { indiceActual++; mostrarCapitulo(tituloLibroActual); } };
-
-        document.getElementById('btn-like').onclick = () => enviarFeedback('like');
-        document.getElementById('btn-dislike').onclick = () => enviarFeedback('dislike');
-
-        async function enviarFeedback(voto) {
-            await addDoc(collection(db, "reacciones"), { lector: lectorEmail, voto, libro: idLibroActual, cap: listaCapitulos[indiceActual].numero, fecha: serverTimestamp() });
-            alert("¡Gracias!");
-        }
-
-        document.getElementById('btn-comentar').onclick = async () => {
-            const msj = document.getElementById('texto-comentario').value;
-            if(!msj.trim()) return;
-            await addDoc(collection(db, "comentarios"), { lector: lectorEmail, mensaje: msj, libro: idLibroActual, cap: listaCapitulos[indiceActual].numero, fecha: serverTimestamp() });
-            alert("Enviado");
-            document.getElementById('texto-comentario').value = "";
-        };
-
-        document.getElementById('btn-cerrar').onclick = () => { document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
-    </script>
+    // Inicializar estrellas cuando se abre el lector
+    document.getElementById('lector-libro').addEventListener('transitionend', () => {
+      if (!document.getElementById('lector-libro').classList.contains('hidden')) {
+        currentRating = 0;
+        renderStars(0);
+      }
+    });
+  </script>
 </body>
 </html>
