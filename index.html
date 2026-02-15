@@ -24,22 +24,16 @@
       margin: 1.5rem 0;
       letter-spacing: 0.5px;
     }
-    .sinopsis {
-      font-size: 0.85rem;
-      color: #4b5563;
-      text-align: center;
-      margin-top: 0.5rem;
-      line-height: 1.4;
-      font-style: italic;
-    }
   </style>
 </head>
 <body oncontextmenu="return false;">
 
-  <!-- Login (sin cambios) -->
+  <!-- Login -->
   <div id="login-screen" class="fixed inset-0 bg-white z-[120] flex items-center justify-center p-6 transition-all duration-500">
     <div class="max-w-sm w-full text-center">
-      <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl">MH</div>
+      <div class="w-20 h-20 bg-gray-900 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold shadow-2xl overflow-hidden">
+        <img src="https://i.ibb.co/jZ5cdq5w/Gemini-Generated-Image-jmfqjajmfqjajmfq.png" class="w-full h-full object-cover" alt="Miguel Hernández">
+      </div>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">Bienvenid@ a mi biblioteca beta</h1>
       <p class="text-gray-400 text-sm mb-6">Versión privada – solo para quienes conocen el link 😉</p>
       <input type="text" id="nombre-input" placeholder="Tu nombre o apodo" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 outline-none focus:border-blue-400">
@@ -74,20 +68,7 @@
     </main>
   </div>
 
-  <!-- Modal de valoración -->
-  <div id="valoracion-modal" class="fixed inset-0 bg-black/50 z-[130] hidden flex items-center justify-center">
-    <div class="bg-white rounded-3xl p-8 max-w-md w-full m-4">
-      <h2 class="text-2xl font-bold mb-4 text-center">Valora este libro</h2>
-      <div id="modal-stars" class="flex justify-center gap-4 text-6xl mb-6"></div>
-      <textarea id="modal-comentario" class="w-full p-5 border-2 border-gray-200 rounded-3xl text-lg resize-none h-32 mb-6" placeholder="Tu comentario (opcional)"></textarea>
-      <div class="flex gap-4">
-        <button id="btn-modal-enviar" class="flex-1 bg-blue-600 text-white py-4 rounded-3xl font-bold">Enviar</button>
-        <button id="btn-modal-cancelar" class="flex-1 bg-gray-300 py-4 rounded-3xl font-bold">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lector (sin cambios, mantengo el simple con botones) -->
+  <!-- Lector simple -->
   <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto">
     <div id="progress-container"><div id="progress-bar"></div></div>
     <nav class="sticky top-0 bg-white/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
@@ -104,12 +85,16 @@
         <button id="btn-ant" class="btn-nav flex-1">Anterior</button>
         <button id="btn-sig" class="btn-nav flex-1 bg-gray-900 text-white font-bold">Siguiente</button>
       </div>
+      <!-- Botón Volver al inicio (solo en último capítulo) -->
+      <div id="inicio-section" class="hidden text-center pt-10 border-t border-gray-100">
+        <button id="btn-inicio" class="w-full bg-gray-800 text-white py-4 rounded-3xl font-bold text-lg">Volver al inicio</button>
+      </div>
     </article>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -131,8 +116,6 @@
     let indiceActual = parseInt(localStorage.getItem('ultimo_cap_indice')) || 0;
     let idLibroActual = localStorage.getItem('ultimo_libro_id') || "";
     let tituloLibroActual = localStorage.getItem('ultimo_libro_titulo') || "";
-    let currentRating = 0;
-    let currentLibroId = "";
 
     window.onload = () => {
       if (lectorNombre) loginExitoso();
@@ -177,10 +160,10 @@
         const t = libro.titulo || libro.Titulo || "Sin Título";
         const publicado = libro.publicado === true;
 
-        let valoracionHTML = '';
+        let paginasHTML = '';
         if (publicado) {
-          // Placeholder por ahora (luego lo hacemos real con Firestore)
-          valoracionHTML = `<p class="text-xs text-gray-600 text-center mt-1">4.5/5 (8 valoraciones)</p>`;
+          const numPaginas = libro.numeroPaginas || 0; // Placeholder o campo real si lo tienes
+          paginasHTML = `<p class="text-xs text-gray-600 text-center mt-1">${numPaginas} páginas</p>`;
         }
 
         let html = `<div class="relative">`;
@@ -191,7 +174,7 @@
           html += `</div><h3 class="font-bold text-sm text-gray-800 text-center">${t}</h3><p class="text-xs text-gray-500 text-center mt-1">Próximamente</p>`;
         } else {
           html += `</div><h3 class="font-bold text-sm text-gray-800 text-center">${t}</h3>`;
-          html += valoracionHTML;
+          html += paginasHTML;
           html = `<div class="cursor-pointer" onclick="prepararLectura('${doc.id}', '${t.replace(/'/g, "\\'")}')">${html}</div>`;
         }
         contenedor.innerHTML += html;
@@ -236,6 +219,13 @@
       document.getElementById('btn-ant').disabled = indiceActual === 0;
       document.getElementById('btn-sig').disabled = indiceActual === listaCapitulos.length - 1;
 
+      // Mostrar botón "Volver al inicio" solo en el último capítulo
+      if (indiceActual === listaCapitulos.length - 1) {
+        document.getElementById('inicio-section').classList.remove('hidden');
+      } else {
+        document.getElementById('inicio-section').classList.add('hidden');
+      }
+
       document.getElementById('lector-libro').scrollTo(0,0);
     }
 
@@ -256,6 +246,14 @@
     document.getElementById('btn-bookmark').onclick = () => {
       localStorage.setItem(`bookmark_${lectorNombre}_${idLibroActual}`, indiceActual);
       alert("Página marcada.");
+    };
+
+    document.getElementById('btn-inicio').onclick = () => {
+      localStorage.removeItem(`ultimo_cap_${idLibroActual}`);
+      localStorage.removeItem(`bookmark_${lectorNombre}_${idLibroActual}`);
+      indiceActual = 0;
+      mostrarCapitulo();
+      alert("Volviste al inicio. El progreso se borró para este libro.");
     };
 
     document.getElementById('btn-cerrar').onclick = () => {
