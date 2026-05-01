@@ -5,37 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Miguel Hernández - Studio Master</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     body { -webkit-user-select: none; user-select: none; transition: background-color 0.3s; font-family: 'Inter', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     body.light-mode { background-color: #f8f9fa; color: #1a1a1a; }
     body.dark-mode { background-color: #1a1c1e; color: #e1e1e1; }
-    
     .dark-mode #app-main, .dark-mode #lector-libro { background-color: #242729; }
     .dark-mode h1, .dark-mode h2, .dark-mode #disp-tit { color: #ffffff !important; }
-    
     h1, h2 { font-family: 'Playfair Display', serif; }
     .prose-serif { font-family: 'Lora', serif; font-size: 1.15rem; line-height: 1.8; }
     #progress-bar { height: 100%; width: 0%; background: #0095f6; transition: width 0.3s ease; }
-    
-    /* Ajuste de títulos en móvil */
     .cap-titulo { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: #1e40af; text-align: center; margin: 1rem 0; }
     .dark-mode .cap-titulo { color: #60a5fa; }
-    
     .btn-floating { @apply fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-[110] active:scale-90 transition-transform; }
     .pencil-btn { @apply cursor-pointer opacity-30 hover:opacity-100 transition-opacity text-sm ml-2 p-2; }
     .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
-    
-    /* Corrección de Reacciones en Móvil */
+    .toolbar-btn { @apply bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-[10px] font-bold uppercase hover:bg-blue-100 transition-colors dark:text-white; }
+    .text-large { font-size: 1.5rem; } .text-xlarge { font-size: 2rem; }
     .reaction-pill { @apply flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-gray-700 shadow-sm active:scale-90 transition-transform text-2xl; }
-
-    @media print {
-      body * { visibility: hidden; }
-      #print-section, #print-section * { visibility: visible; }
-      #print-section { position: absolute; left: 0; top: 0; width: 100%; }
-      .page-break { page-break-after: always; min-height: 100vh; position: relative; }
-    }
   </style>
 </head>
 <body class="light-mode">
@@ -45,7 +34,7 @@
     <div class="max-w-sm w-full text-center">
       <h1 class="text-2xl font-bold mb-6 text-gray-800">Biblioteca Privada</h1>
       <input type="text" id="nombre-input" placeholder="Nombre" class="w-full p-4 border-2 rounded-2xl mb-4 text-black outline-none focus:border-blue-400">
-      <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95">Entrar</button>
+      <button id="btn-entrar" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg">Entrar</button>
     </div>
   </div>
 
@@ -53,20 +42,14 @@
   <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden relative pb-20 transition-colors">
     <header class="p-8 text-center relative">
       <button id="btn-night-mode" class="absolute top-6 right-6 text-2xl">🌙</button>
-      <div class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden">
-        <img src="https://i.ibb.co/jZ5cdq5w/Gemini-Generated-Image-jmfqjajmfqjajmfq.png" class="w-full h-full object-cover">
-      </div>
-      <div class="flex items-center justify-center">
-        <h1 class="text-xl font-bold">Miguel Hernández</h1>
-        <svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg>
-      </div>
+      <div class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden"><img src="https://i.ibb.co/jZ5cdq5w/Gemini-Generated-Image-jmfqjajmfqjajmfq.png" class="w-full h-full object-cover"></div>
+      <div class="flex items-center justify-center"><h1 class="text-xl font-bold">Miguel Hernández</h1><svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg></div>
       <p id="msg-hola" class="text-sm text-gray-400 mt-2 font-medium"></p>
     </header>
     <main class="p-4"><div id="contenedor-libros" class="grid grid-cols-2 gap-6"></div></main>
-    
     <footer class="text-center p-10">
       <button id="btn-logout" class="text-xs text-gray-300 border px-6 py-2 rounded-full mb-4 uppercase">Cerrar Sesión</button>
-      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.3 Master</p>
+      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.5 Master</p>
     </footer>
   </div>
 
@@ -74,13 +57,13 @@
   <div id="modal-libro" class="fixed inset-0 bg-black/50 z-[130] hidden flex items-center justify-center p-6 backdrop-blur-sm">
     <div class="bg-white dark:bg-gray-800 w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl transition-colors">
       <h3 id="modal-titulo" class="font-bold mb-6 text-lg"></h3>
-      <button id="modal-btn-leer" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl mb-4 shadow-lg active:scale-95 transition-all">📖 Leer ahora</button>
-      <button id="modal-btn-pdf-full" class="w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-bold py-4 rounded-2xl mb-4 active:scale-95 transition-all">📥 Descargar Completo</button>
+      <button id="modal-btn-leer" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl mb-4 shadow-lg">📖 Leer ahora</button>
+      <button id="modal-btn-pdf-full" class="w-full bg-gray-100 dark:bg-gray-700 text-sm font-bold py-4 rounded-2xl mb-4">📥 Descargar Completo</button>
       <button onclick="document.getElementById('modal-libro').classList.add('hidden')" class="text-xs text-gray-400 uppercase tracking-widest">Cancelar</button>
     </div>
   </div>
 
-  <!-- Lector Master -->
+  <!-- Lector -->
   <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto transition-colors">
     <div class="fixed top-0 left-0 w-full h-1 bg-gray-100 z-50"><div id="progress-bar"></div></div>
     <nav class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
@@ -90,37 +73,30 @@
     
     <article id="pdf-area" class="max-w-prose mx-auto p-6 pt-4 pb-40">
       <div class="flex flex-col items-center mb-6">
-          <div class="flex items-center justify-center">
-            <h1 id="disp-tit" class="text-2xl font-bold text-center"></h1>
-            <span id="edit-tit-btn" class="pencil-btn hidden">✏️</span>
-          </div>
-          <div class="flex items-center justify-center mt-2">
-            <div id="disp-sub" class="cap-titulo"></div>
-            <span id="edit-sub-btn" class="pencil-btn hidden">✏️</span>
-            <span id="visibilidad-btn" class="pencil-btn hidden text-lg">👁️</span>
-          </div>
+          <div class="flex items-center justify-center"><h1 id="disp-tit" class="text-2xl font-bold text-center"></h1><span id="edit-tit-btn" class="pencil-btn hidden">✏️</span></div>
+          <div class="flex items-center justify-center mt-2"><div id="disp-sub" class="cap-titulo"></div><span id="edit-sub-btn" class="pencil-btn hidden">✏️</span><span id="visibilidad-btn" class="pencil-btn hidden text-lg">👁️</span></div>
       </div>
       
-      <div id="view-lectura">
-          <div id="disp-txt" class="prose-serif mb-16 whitespace-pre-line text-justify"></div>
-          <div class="flex justify-center"><span id="edit-txt-btn" class="pencil-btn hidden">✏️ EDITAR TEXTO</span></div>
-      </div>
+      <div id="view-lectura"><div id="disp-txt" class="prose-serif mb-16 text-justify"></div><div class="flex justify-center"><span id="edit-txt-btn" class="pencil-btn hidden">✏️ EDITAR TEXTO</span></div></div>
 
       <div id="view-editor" class="hidden mb-16">
-          <textarea id="box-editor" class="w-full h-80 p-4 border-2 rounded-2xl font-serif text-lg text-black outline-none mb-4 shadow-inner"></textarea>
+          <div class="flex flex-wrap gap-2 mb-4 bg-gray-50 p-3 rounded-xl dark:bg-gray-900">
+              <button onclick="applyFormat('bold')" class="toolbar-btn font-bold">Negrita</button>
+              <button onclick="applyFormat('center')" class="toolbar-btn">Centrar</button>
+              <button onclick="applyFormat('large')" class="toolbar-btn">Grande</button>
+              <button onclick="applyFormat('removeFormat')" class="toolbar-btn">Limpiar</button>
+          </div>
+          <div id="box-editor" contenteditable="true" class="w-full min-h-[350px] p-4 border-2 rounded-2xl font-serif text-lg text-black outline-none mb-4 bg-white shadow-inner overflow-y-auto"></div>
           <button id="btn-save-global" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl shadow-lg">💾 GUARDAR CAMBIOS</button>
       </div>
       
-      <!-- Navegación Corregida para Móvil -->
       <div id="nav-lector" class="flex justify-between gap-4 mb-12">
         <button id="btn-atras" class="flex-1 bg-gray-100 dark:bg-gray-700 p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Anterior</button>
         <button id="btn-adelante" class="flex-1 bg-gray-900 dark:bg-gray-100 text-white dark:text-black p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest">Siguiente</button>
       </div>
 
-      <!-- Panel de Reacciones Corregido -->
       <div id="hype-panel" class="p-8 bg-gray-50 rounded-[2.5rem] text-center dark:bg-gray-800 transition-colors">
-        <p class="text-[10px] font-black text-gray-400 mb-6 tracking-widest uppercase">¿Qué te provocó?</p>
-        <div class="flex justify-center gap-4 sm:gap-6">
+        <div class="flex justify-center gap-4 sm:gap-6 mb-6">
           <button onclick="sendHype('🔥')" class="reaction-pill">🔥</button>
           <button onclick="sendHype('❤️')" class="reaction-pill">❤️</button>
           <button onclick="sendHype('😢')" class="reaction-pill">😢</button>
@@ -132,217 +108,108 @@
     <button id="btn-plus" class="hidden btn-floating">➕</button>
   </div>
 
-  <div id="print-section" class="hidden"></div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy, doc, updateDoc, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w",
-      authDomain: "libreria-miguel.firebaseapp.com",
-      projectId: "libreria-miguel",
-      storageBucket: "libreria-miguel.firebasestorage.app",
-      messagingSenderId: "490418742035",
-      appId: "1:490418742035:web:38495fc41da972f8b070e6"
+    const firebaseConfig = { apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w", authDomain: "libreria-miguel.firebaseapp.com", projectId: "libreria-miguel", storageBucket: "libreria-miguel.firebasestorage.app", messagingSenderId: "490418742035", appId: "1:490418742035:web:38495fc41da972f8b070e6" };
+    const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+
+    let u = localStorage.getItem('lector_nombre') || ""; let caps = []; let cIdx = 0; let libId = ""; let libTit = ""; let editTarget = ""; let esM = false;
+
+    window.applyFormat = (type) => {
+        if(type === 'removeFormat') document.execCommand('removeFormat');
+        else if(type === 'large') document.execCommand('fontSize', false, '5');
+        else if(type === 'bold') document.execCommand('bold');
+        else if(type === 'center') document.execCommand('justifyCenter');
     };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let u = localStorage.getItem('lector_nombre') || "";
-    let caps = []; let cIdx = 0; let libId = ""; let libTit = ""; let editTarget = "";
-    let esM = false;
 
     window.onload = () => { if(u) login(); };
-    document.getElementById('btn-entrar').onclick = () => {
-      const n = document.getElementById('nombre-input').value.trim();
-      if(n) { u = n; localStorage.setItem('lector_nombre', n); login(); }
-    };
+    document.getElementById('btn-entrar').onclick = () => { const n = document.getElementById('nombre-input').value.trim(); if(n) { u = n; localStorage.setItem('lector_nombre', n); login(); } };
 
     function login() {
       esM = (u === "Miguel03");
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-main').classList.remove('hidden');
       document.getElementById('msg-hola').innerText = `Hola, ${u}`;
-      if(esM) {
-          document.querySelectorAll('.pencil-btn').forEach(p => p.classList.remove('hidden'));
-          document.getElementById('btn-plus').classList.remove('hidden');
-      }
+      if(esM) { document.querySelectorAll('.pencil-btn').forEach(p => p.classList.remove('hidden')); document.getElementById('btn-plus').classList.remove('hidden'); }
       loadBooks();
     }
 
     async function loadBooks() {
-      const s = await getDocs(collection(db, "libros"));
-      const c = document.getElementById('contenedor-libros');
-      c.innerHTML = "";
+      const s = await getDocs(collection(db, "libros")); const c = document.getElementById('contenedor-libros'); c.innerHTML = "";
       s.forEach(d => {
-        const da = d.data();
-        const t = da.Titulo || da.titulo || "Sin título";
-        c.innerHTML += `<div onclick="showOptions('${d.id}', '${t.replace(/'/g, "\\'")}')" class="cursor-pointer">
-            <div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-2 overflow-hidden border-4 border-white active:scale-95 transition-transform"><img src="${da.portadaURL}" class="w-full h-full object-cover"></div>
-            <h3 class="font-bold text-[10px] text-center tracking-tight uppercase">${t}</h3></div>`;
+        const da = d.data(); const t = da.Titulo || da.titulo || "Sin título";
+        c.innerHTML += `<div onclick="showOptions('${d.id}', '${t.replace(/'/g, "\\'")}')" class="cursor-pointer"><div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-2 overflow-hidden border-4 border-white active:scale-95 transition-transform"><img src="${da.portadaURL}" class="w-full h-full object-cover"></div><h3 class="font-bold text-[10px] text-center tracking-tight uppercase">${t}</h3></div>`;
       });
     }
 
-    window.showOptions = (id, tit) => {
-        libId = id; libTit = tit;
-        document.getElementById('modal-titulo').innerText = tit;
-        document.getElementById('modal-libro').classList.remove('hidden');
-    };
-
-    document.getElementById('modal-btn-leer').onclick = () => {
-        document.getElementById('modal-libro').classList.add('hidden');
-        openL(libId, libTit);
-    };
+    window.showOptions = (id, tit) => { libId = id; libTit = tit; document.getElementById('modal-titulo').innerText = tit; document.getElementById('modal-libro').classList.remove('hidden'); };
+    document.getElementById('modal-btn-leer').onclick = () => { document.getElementById('modal-libro').classList.add('hidden'); openL(libId, libTit); };
 
     window.openL = async (id, tit) => {
-      const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc"));
-      const s = await getDocs(q);
-      caps = [];
-      s.forEach(d => {
-        let x = d.data();
-        x.fid = d.id;
-        if(x.visible !== false || esM) caps.push(x);
-      });
-
-      document.getElementById('lector-libro').classList.remove('hidden');
-      document.getElementById('app-main').classList.add('hidden');
-      
+      const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc")); const s = await getDocs(q); caps = [];
+      s.forEach(d => { let x = d.data(); x.fid = d.id; if(x.visible !== false || esM) caps.push(x); });
+      document.getElementById('lector-libro').classList.remove('hidden'); document.getElementById('app-main').classList.add('hidden');
       if(caps.length === 0) {
-          document.getElementById('disp-tit').innerText = tit;
-          document.getElementById('disp-sub').innerText = "Sinopsis";
-          const dRef = await getDoc(doc(db, "libros", id));
-          document.getElementById('disp-txt').innerText = dRef.data().sinopsis || "Próximamente...";
+          document.getElementById('disp-tit').innerText = tit; document.getElementById('disp-sub').innerText = "Sinopsis";
+          const dRef = await getDoc(doc(db, "libros", id)); document.getElementById('disp-txt').innerHTML = dRef.data().sinopsis || "Próximamente...";
           document.getElementById('nav-lector').classList.add('hidden');
-      } else {
-          cIdx = parseInt(localStorage.getItem(`prog_${id}`)) || 0;
-          if(cIdx >= caps.length) cIdx = 0;
-          document.getElementById('nav-lector').classList.remove('hidden');
-          render();
-      }
+      } else { cIdx = parseInt(localStorage.getItem(`prog_${id}`)) || 0; if(cIdx >= caps.length) cIdx = 0; document.getElementById('nav-lector').classList.remove('hidden'); render(); }
     };
 
     function render() {
-      const x = caps[cIdx];
-      document.getElementById('disp-tit').innerText = libTit;
+      const x = caps[cIdx]; document.getElementById('disp-tit').innerText = libTit;
       document.getElementById('disp-sub').innerText = x.subtitulo || `Capítulo ${x.numero || cIdx+1}`;
-      document.getElementById('disp-txt').innerHTML = (x.contenido || "").replace(/\n/g, '<br>');
-      document.getElementById('view-lectura').classList.remove('hidden');
-      document.getElementById('view-editor').classList.add('hidden');
+      document.getElementById('disp-txt').innerHTML = x.contenido || "";
+      document.getElementById('view-lectura').classList.remove('hidden'); document.getElementById('view-editor').classList.add('hidden');
       document.getElementById('progress-bar').style.width = ((cIdx+1)/caps.length*100) + "%";
-      
-      if(esM) {
-          document.getElementById('visibilidad-btn').innerText = (x.visible !== false) ? "👁️" : "🚫";
-          document.getElementById('visibilidad-btn').style.color = (x.visible !== false) ? "#3b82f6" : "#ef4444";
-      }
-
+      if(esM) { document.getElementById('visibilidad-btn').innerText = (x.visible !== false) ? "👁️" : "🚫"; document.getElementById('visibilidad-btn').style.color = (x.visible !== false) ? "#3b82f6" : "#ef4444"; }
       localStorage.setItem(`prog_${libId}`, cIdx);
-      document.getElementById('btn-atras').disabled = cIdx === 0;
-      document.getElementById('btn-adelante').classList.toggle('hidden', cIdx === caps.length - 1);
+      document.getElementById('btn-atras').disabled = cIdx === 0; document.getElementById('btn-adelante').classList.toggle('hidden', cIdx === caps.length - 1);
       document.getElementById('btn-reiniciar').classList.toggle('hidden', cIdx !== caps.length - 1);
       document.getElementById('lector-libro').scrollTo(0,0);
     }
 
-    document.getElementById('visibilidad-btn').onclick = async () => {
-        const x = caps[cIdx];
-        const nuevoEstado = (x.visible !== false) ? false : true;
-        await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible: nuevoEstado });
-        x.visible = nuevoEstado;
-        render();
-    };
-
     document.getElementById('modal-btn-pdf-full').onclick = async () => {
-        const q = query(collection(db, "libros", libId, "capitulos"), orderBy("numero", "asc"));
-        const s = await getDocs(q);
-        const ahora = new Date();
-        const fechaStr = ahora.toLocaleDateString();
-        const horaStr = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        let html = `<div style="font-family: 'Lora', serif; color: black; background: white; width: 100%;">`;
+        const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
+        const q = query(collection(db, "libros", libId, "capitulos"), orderBy("numero", "asc")); const s = await getDocs(q);
+        let y = 20;
         s.forEach((d, index) => {
             const data = d.data();
             if(data.visible !== false || esM) {
-                const safeIdx = (index + 1);
-                html += `<div class="page-break" style="padding: 1in; position: relative; min-height: 100vh; box-sizing: border-box;">`;
-                html += `
-                <div style="display: flex; justify-content: space-between; font-size: 8pt; color: #666; margin-bottom: 40px; border-bottom: 0.5px solid #eee; padding-bottom: 10px;">
-                    <span>${fechaStr} | ${horaStr}</span>
-                    <span style="font-weight: bold; color: black;">Miguel Hernández</span>
-                    <span style="color: #ef4444;">ID Lector: ${u}</span>
-                </div>`;
-                html += `<h2 style="text-align: center; font-size: 22pt; margin-top: 40px;">${data.subtitulo || 'Capítulo ' + safeIdx}</h2>`;
-                html += `<p style="text-align: justify; font-size: 13pt; line-height: 1.8; white-space: pre-wrap; margin-top: 30px;">${data.contenido}</p>`;
-                html += `<div style="position: absolute; bottom: 0.5in; left: 0; width: 100%; text-align: center; font-size: 9pt; color: #999;">Página ${safeIdx}</div>`;
-                html += `</div>`;
+                docPdf.setFontSize(18); docPdf.text(libTit, 105, y, { align: 'center' }); y += 10;
+                docPdf.setFontSize(14); docPdf.text(data.subtitulo || 'Capítulo '+(index+1), 105, y, { align: 'center' }); y += 15;
+                docPdf.setFontSize(10); const plainText = data.contenido.replace(/<[^>]*>/g, '');
+                const lines = docPdf.splitTextToSize(plainText, 180); docPdf.text(lines, 15, y);
+                docPdf.addPage(); y = 20;
             }
         });
-        html += `</div>`;
-
-        const printArea = document.getElementById('print-section');
-        printArea.innerHTML = html;
-        printArea.classList.remove('hidden');
-        window.print();
-        printArea.classList.add('hidden');
+        docPdf.save(`${libTit}_Completo.pdf`);
         document.getElementById('modal-libro').classList.add('hidden');
-    };
-
-    document.getElementById('btn-pdf-cap').onclick = () => {
-        const ahora = new Date();
-        const printArea = document.getElementById('print-section');
-        printArea.innerHTML = `<div style="padding: 1in; font-family: 'Lora', serif; color: black; background: white; min-height: 100vh; position: relative;">
-            <div style="display: flex; justify-content: space-between; font-size: 8pt; color: #666; border-bottom: 0.5px solid #eee; padding-bottom: 10px; margin-bottom: 40px;">
-                <span>${ahora.toLocaleDateString()}</span>
-                <span style="font-weight: bold; color: black;">Miguel Hernández</span>
-                <span style="color: #ef4444;">ID Lector: ${u}</span>
-            </div>
-            <h1 style="text-align: center;">${libTit}</h1>
-            <h2 style="text-align: center;">${document.getElementById('disp-sub').innerText}</h2>
-            <p style="text-align: justify; white-space: pre-wrap; line-height: 1.8; font-size: 13pt;">${caps[cIdx].contenido}</p>
-        </div>`;
-        printArea.classList.remove('hidden');
-        window.print();
-        printArea.classList.add('hidden');
     };
 
     document.getElementById('edit-tit-btn').onclick = () => { editTarget = "TIT"; startEdit(document.getElementById('disp-tit').innerText); };
     document.getElementById('edit-sub-btn').onclick = () => { editTarget = "SUB"; startEdit(document.getElementById('disp-sub').innerText); };
-    document.getElementById('edit-txt-btn').onclick = () => { editTarget = "TXT"; startEdit(caps.length === 0 ? document.getElementById('disp-txt').innerText : caps[cIdx].contenido); };
+    document.getElementById('edit-txt-btn').onclick = () => { editTarget = "TXT"; startEdit(caps.length === 0 ? document.getElementById('disp-txt').innerHTML : caps[cIdx].contenido); };
 
-    function startEdit(val) {
-        document.getElementById('view-lectura').classList.add('hidden');
-        document.getElementById('view-editor').classList.remove('hidden');
-        document.getElementById('box-editor').value = val;
-    }
+    function startEdit(val) { document.getElementById('view-lectura').classList.add('hidden'); document.getElementById('view-editor').classList.remove('hidden'); document.getElementById('box-editor').innerHTML = val; }
 
     document.getElementById('btn-save-global').onclick = async () => {
-      const v = document.getElementById('box-editor').value;
+      const v = document.getElementById('box-editor').innerHTML;
       if(editTarget === "TIT") { await updateDoc(doc(db, "libros", libId), { Titulo: v }); libTit = v; document.getElementById('disp-tit').innerText = v; }
       if(editTarget === "SUB" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { subtitulo: v }); caps[cIdx].subtitulo = v; document.getElementById('disp-sub').innerText = v; }
-      if(editTarget === "TXT" && caps.length === 0) { await updateDoc(doc(db, "libros", libId), { sinopsis: v }); document.getElementById('disp-txt').innerText = v; }
-      if(editTarget === "TXT" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { contenido: v }); caps[cIdx].contenido = v; document.getElementById('disp-txt').innerHTML = v.replace(/\n/g, '<br>'); }
-      document.getElementById('view-editor').classList.add('hidden');
-      document.getElementById('view-lectura').classList.remove('hidden');
+      if(editTarget === "TXT" && caps.length === 0) { await updateDoc(doc(db, "libros", libId), { sinopsis: v }); document.getElementById('disp-txt').innerHTML = v; }
+      if(editTarget === "TXT" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { contenido: v }); caps[cIdx].contenido = v; document.getElementById('disp-txt').innerHTML = v; }
+      document.getElementById('view-editor').classList.add('hidden'); document.getElementById('view-lectura').classList.remove('hidden');
     };
 
-    window.sendHype = async (emoji) => {
-      await addDoc(collection(db, "reacciones"), { libro: libTit, lector: u, reaccion: emoji, fecha: serverTimestamp() });
-      alert("❤️ Enviado");
-    };
-
-    document.getElementById('btn-reiniciar').onclick = () => {
-      localStorage.setItem(`prog_${libId}`, 0);
-      document.getElementById('lector-libro').classList.add('hidden');
-      document.getElementById('app-main').classList.remove('hidden');
-    };
-
+    window.sendHype = async (emoji) => { await addDoc(collection(db, "reacciones"), { libro: libTit, lector: u, reaccion: emoji, fecha: serverTimestamp() }); alert("❤️ Enviado"); };
+    document.getElementById('btn-reiniciar').onclick = () => { localStorage.setItem(`prog_${libId}`, 0); document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
     document.getElementById('btn-atras').onclick = () => { if(cIdx > 0) { cIdx--; render(); }};
     document.getElementById('btn-adelante').onclick = () => { if(cIdx < caps.length - 1) { cIdx++; render(); }};
     document.getElementById('btn-cerrar').onclick = () => { document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
-    document.getElementById('btn-night-mode').onclick = () => { 
-        const dark = document.body.classList.toggle('dark-mode'); 
-        document.getElementById('btn-night-mode').innerText = dark ? '☀️' : '🌙'; 
-    };
+    document.getElementById('btn-night-mode').onclick = () => { const dark = document.body.classList.toggle('dark-mode'); document.getElementById('btn-night-mode').innerText = dark ? '☀️' : '🌙'; };
     document.getElementById('btn-logout').onclick = () => { localStorage.clear(); location.reload(); };
   </script>
 </body>
