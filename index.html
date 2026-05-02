@@ -29,7 +29,6 @@
 </head>
 <body class="light-mode">
 
-  <!-- Login -->
   <div id="login-screen" class="fixed inset-0 bg-white z-[120] flex items-center justify-center p-6">
     <div class="max-w-sm w-full text-center">
       <h1 class="text-2xl font-bold mb-6 text-gray-800">Biblioteca Privada</h1>
@@ -38,7 +37,6 @@
     </div>
   </div>
 
-  <!-- App Principal -->
   <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden relative pb-20 transition-colors">
     <header class="p-8 text-center relative">
       <button id="btn-night-mode" class="absolute top-6 right-6 text-2xl">🌙</button>
@@ -49,11 +47,10 @@
     <main class="p-4"><div id="contenedor-libros" class="grid grid-cols-2 gap-6"></div></main>
     <footer class="text-center p-10">
       <button id="btn-logout" class="text-xs text-gray-300 border px-6 py-2 rounded-full mb-4 uppercase">Cerrar Sesión</button>
-      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.6</p>
+      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.7</p>
     </footer>
   </div>
 
-  <!-- Modal Opciones -->
   <div id="modal-libro" class="fixed inset-0 bg-black/50 z-[130] hidden flex items-center justify-center p-6 backdrop-blur-sm">
     <div class="bg-white dark:bg-gray-800 w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl transition-colors">
       <h3 id="modal-titulo" class="font-bold mb-6 text-lg"></h3>
@@ -63,7 +60,6 @@
     </div>
   </div>
 
-  <!-- Lector -->
   <div id="lector-libro" class="fixed inset-0 bg-white z-[105] hidden overflow-y-auto transition-colors">
     <div class="fixed top-0 left-0 w-full h-1 bg-gray-100 z-50"><div id="progress-bar"></div></div>
     <nav class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 flex justify-between items-center z-20">
@@ -171,7 +167,6 @@
       document.getElementById('lector-libro').scrollTo(0,0);
     }
 
-    // FUNCIÓN DEL BOTÓN "+"
     document.getElementById('btn-plus').onclick = async () => {
         if(!esM) return;
         const nuevoNum = caps.length + 1;
@@ -182,8 +177,19 @@
             visible: false,
             fecha: serverTimestamp()
         });
-        alert("Página creada. Recargando...");
-        location.reload();
+        const dRef = await getDoc(docRef);
+        let x = dRef.data(); x.fid = dRef.id;
+        caps.push(x);
+        cIdx = caps.length - 1;
+        render();
+    };
+
+    document.getElementById('visibilidad-btn').onclick = async () => {
+        const x = caps[cIdx];
+        const nuevoEstado = (x.visible !== false) ? false : true;
+        await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible: nuevoEstado });
+        x.visible = nuevoEstado;
+        render();
     };
 
     document.getElementById('modal-btn-pdf-full').onclick = async () => {
@@ -208,10 +214,19 @@
     document.getElementById('edit-sub-btn').onclick = () => { editTarget = "SUB"; startEdit(document.getElementById('disp-sub').innerText); };
     document.getElementById('edit-txt-btn').onclick = () => { editTarget = "TXT"; startEdit(caps.length === 0 ? document.getElementById('disp-txt').innerHTML : caps[cIdx].contenido); };
 
-    function startEdit(val) { document.getElementById('view-lectura').classList.add('hidden'); document.getElementById('view-editor').classList.remove('hidden'); document.getElementById('box-editor').innerHTML = val; }
+    function startEdit(val) { 
+        document.getElementById('view-lectura').classList.add('hidden'); 
+        document.getElementById('view-editor').classList.remove('hidden'); 
+        // Limpiamos etiquetas HTML de títulos si se colaron
+        const cleanVal = val.replace(/<[^>]*>/g, '');
+        document.getElementById('box-editor').innerHTML = cleanVal; 
+    }
 
     document.getElementById('btn-save-global').onclick = async () => {
-      const v = document.getElementById('box-editor').innerHTML;
+      let v = document.getElementById('box-editor').innerHTML;
+      if(editTarget === "TIT" || editTarget === "SUB") {
+          v = v.replace(/<[^>]*>/g, ''); // Limpieza forzada de HTML para títulos
+      }
       if(editTarget === "TIT") { await updateDoc(doc(db, "libros", libId), { Titulo: v }); libTit = v; document.getElementById('disp-tit').innerText = v; }
       if(editTarget === "SUB" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { subtitulo: v }); caps[cIdx].subtitulo = v; document.getElementById('disp-sub').innerText = v; }
       if(editTarget === "TXT" && caps.length === 0) { await updateDoc(doc(db, "libros", libId), { sinopsis: v }); document.getElementById('disp-txt').innerHTML = v; }
