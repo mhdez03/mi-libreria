@@ -12,7 +12,7 @@
     body { -webkit-user-select: none; user-select: none; transition: background-color 0.3s; font-family: 'Inter', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     body.light-mode { background-color: #f8f9fa; color: #1a1a1a; }
     body.dark-mode { background-color: #1a1c1e; color: #e1e1e1; }
-    .dark-mode #app-main, .dark-mode #lector-libro { background-color: #242729; }
+    .dark-mode #app-main, .dark-mode #lector-libro, .dark-mode #modal-actividad-box { background-color: #242729; }
     .dark-mode h1, .dark-mode h2, .dark-mode #disp-tit { color: #ffffff !important; }
     h1, h2 { font-family: 'Playfair Display', serif; }
     .prose-serif { font-family: 'Lora', serif; font-size: 1.15rem; line-height: 1.8; }
@@ -20,11 +20,17 @@
     .cap-titulo { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: #1e40af; text-align: center; margin: 1rem 0; }
     .dark-mode .cap-titulo { color: #60a5fa; }
     .btn-floating { @apply fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-[110] active:scale-90 transition-transform; }
+    .btn-delete-floating { @apply fixed bottom-24 right-6 w-14 h-14 bg-red-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-[110] active:scale-90 transition-transform; }
     .pencil-btn { @apply cursor-pointer opacity-30 hover:opacity-100 transition-opacity text-sm ml-2 p-2; }
     .ig-verified { width: 16px; height: 16px; margin-left: 4px; color: #0095f6; display: inline-block; vertical-align: middle; }
     .toolbar-btn { @apply bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-[10px] font-bold uppercase hover:bg-blue-100 transition-colors dark:text-white; }
     .text-large { font-size: 1.5rem; } .text-xlarge { font-size: 2rem; }
     .reaction-pill { @apply flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-gray-700 shadow-sm active:scale-90 transition-transform text-2xl; }
+    
+    /* Estilos del carrusel horizontal deslizable manteniendo tamaños */
+    .carousel-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 1.5rem; padding-bottom: 1rem; scrollbar-width: none; }
+    .carousel-container::-webkit-scrollbar { display: none; }
+    .carousel-item { flex: 0 0 calc(50% - 0.75rem); scroll-snap-align: start; }
   </style>
 </head>
 <body class="light-mode">
@@ -40,15 +46,40 @@
   <div id="app-main" class="max-w-md mx-auto min-h-screen shadow-2xl bg-white hidden relative pb-20 transition-colors">
     <header class="p-8 text-center relative">
       <button id="btn-night-mode" class="absolute top-6 right-6 text-2xl">🌙</button>
+      <!-- Hoja de Reportes para Administrador Oculta abajo de la luna -->
+      <button id="btn-admin-logs" class="absolute top-16 right-6 text-xl p-2 hidden">📄</button>
+      
       <div class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden"><img src="https://i.ibb.co/jZ5cdq5w/Gemini-Generated-Image-jmfqjajmfqjajmfq.png" class="w-full h-full object-cover"></div>
       <div class="flex items-center justify-center"><h1 class="text-xl font-bold">Miguel Hernández</h1><svg class="ig-verified" viewBox="0 0 40 40" fill="currentColor"><path d="M19.998 3.132c-9.311 0-16.866 7.555-16.866 16.866s7.555 16.866 16.866 16.866 16.866-7.555 16.866-16.866-7.555-16.866-16.866-16.866zm8.217 14.12l-9.208 9.208a1.187 1.187 0 01-1.679 0l-4.524-4.524a1.187 1.187 0 111.679-1.679l3.684 3.684 8.37-8.37a1.187 1.187 0 011.678 1.681z"/></svg></div>
       <p id="msg-hola" class="text-sm text-gray-400 mt-2 font-medium"></p>
     </header>
-    <main class="p-4"><div id="contenedor-libros" class="grid grid-cols-2 gap-6"></div></main>
+    
+    <!-- Modificación estructural para el Carrusel Horizontal -->
+    <main class="p-6">
+      <div id="contenedor-destacado" class="grid grid-cols-2 gap-6 justify-center"></div>
+      <div id="separador-proximamente" class="hidden mb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <p class="text-[11px] font-black tracking-widest text-gray-400 dark:text-gray-500 uppercase">Próximamente</p>
+      </div>
+      <div id="contenedor-carousel" class="carousel-container"></div>
+    </main>
+    
     <footer class="text-center p-10">
       <button id="btn-logout" class="text-xs text-gray-300 border px-6 py-2 rounded-full mb-4 uppercase">Cerrar Sesión</button>
-      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.7</p>
+      <p class="text-[10px] text-gray-300 uppercase tracking-widest">Miguel Hernández © 2026 • v1.3.9 Master</p>
     </footer>
+  </div>
+
+  <!-- Modal Panel de Actividad Oculto (Logs) -->
+  <div id="modal-actividad" class="fixed inset-0 bg-black/60 z-[140] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="modal-actividad-box" class="bg-white w-full max-w-md rounded-[2rem] p-6 h-[80vh] flex flex-col shadow-2xl transition-colors">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h3 class="font-black text-xs uppercase tracking-widest text-gray-400">Bitácora de Actividad</h3>
+        <button onclick="document.getElementById('modal-actividad').classList.add('hidden')" class="text-sm font-bold p-1">✕</button>
+      </div>
+      <div id="logs-render-area" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+         <p class="text-center text-gray-400 py-4">Cargando actividad...</p>
+      </div>
+    </div>
   </div>
 
   <div id="modal-libro" class="fixed inset-0 bg-black/50 z-[130] hidden flex items-center justify-center p-6 backdrop-blur-sm">
@@ -69,11 +100,11 @@
     
     <article id="pdf-area" class="max-w-prose mx-auto p-6 pt-4 pb-40">
       <div class="flex flex-col items-center mb-6">
-          <div class="flex items-center justify-center"><h1 id="disp-tit" class="text-2xl font-bold text-center"></h1><span id="edit-tit-btn" class="pencil-btn hidden">✏️</span></div>
-          <div class="flex items-center justify-center mt-2"><div id="disp-sub" class="cap-titulo"></div><span id="edit-sub-btn" class="pencil-btn hidden">✏️</span><span id="visibilidad-btn" class="pencil-btn hidden text-lg">👁️</span></div>
+          <div class="flex items-center justify-center"><h1 id="disp-tit" class="text-2xl font-bold text-center"></h1><span id="edit-tit-btn" class="pencil-btn hidden">✏️</span><span id="vis-tit-btn" class="pencil-btn hidden text-sm">👁️</span></div>
+          <div class="flex items-center justify-center mt-2"><div id="disp-sub" class="cap-titulo"></div><span id="edit-sub-btn" class="pencil-btn hidden">✏️</span><span id="vis-sub-btn" class="pencil-btn hidden text-sm">👁️</span></div>
       </div>
       
-      <div id="view-lectura"><div id="disp-txt" class="prose-serif mb-16 text-justify"></div><div class="flex justify-center"><span id="edit-txt-btn" class="pencil-btn hidden">✏️ EDITAR TEXTO</span></div></div>
+      <div id="view-lectura"><div id="disp-txt" class="prose-serif mb-16 text-justify"></div><div class="flex justify-center gap-4"><span id="edit-txt-btn" class="pencil-btn hidden">✏️ EDITAR TEXTO</span><span id="vis-txt-btn" class="pencil-btn hidden text-sm">👁️</span></div></div>
 
       <div id="view-editor" class="hidden mb-16">
           <div class="flex flex-wrap gap-2 mb-4 bg-gray-50 p-3 rounded-xl dark:bg-gray-900">
@@ -101,12 +132,13 @@
         <button id="btn-reiniciar" class="hidden mt-10 text-[10px] text-blue-500 font-bold uppercase tracking-widest border-b border-blue-500 pb-1">Volver al Inicio</button>
       </div>
     </article>
+    <button id="btn-delete" class="hidden btn-floating btn-delete-floating">✕</button>
     <button id="btn-plus" class="hidden btn-floating">➕</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, doc, updateDoc, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyBLCRqrMUSMWJsJV0hWlapUvDZeOExcc6w", authDomain: "libreria-miguel.firebaseapp.com", projectId: "libreria-miguel", storageBucket: "libreria-miguel.firebasestorage.app", messagingSenderId: "490418742035", appId: "1:490418742035:web:38495fc41da972f8b070e6" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
@@ -123,45 +155,131 @@
     window.onload = () => { if(u) login(); };
     document.getElementById('btn-entrar').onclick = () => { const n = document.getElementById('nombre-input').value.trim(); if(n) { u = n; localStorage.setItem('lector_nombre', n); login(); } };
 
+    // Función invisible de Logs
+    async function registrarLog(accion) {
+        try {
+            await addDoc(collection(db, "actividad_usuarios"), {
+                usuario: u || "Anónimo",
+                accion: accion,
+                fecha: serverTimestamp()
+            });
+        } catch(e) { console.error(e); }
+    }
+
     function login() {
       esM = (u === "Miguel03");
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-main').classList.remove('hidden');
       document.getElementById('msg-hola').innerText = `Hola, ${u}`;
-      if(esM) { document.querySelectorAll('.pencil-btn').forEach(p => p.classList.remove('hidden')); document.getElementById('btn-plus').classList.remove('hidden'); }
+      
+      if(esM) { 
+          document.querySelectorAll('.pencil-btn').forEach(p => p.classList.remove('hidden')); 
+          document.getElementById('btn-plus').classList.remove('hidden'); 
+          document.getElementById('btn-delete').classList.remove('hidden'); 
+          document.getElementById('btn-admin-logs').classList.remove('hidden'); // Muestra la hoja solo a ti
+      }
+      registrarLog("Inició sesión");
       loadBooks();
     }
 
+    // CARGA DE LIBROS CON REDISEÑO DE CARRUSEL MANTENIENDO EL TAMAÑO
     async function loadBooks() {
-      const s = await getDocs(collection(db, "libros")); const c = document.getElementById('contenedor-libros'); c.innerHTML = "";
+      const s = await getDocs(collection(db, "libros")); 
+      const destContainer = document.getElementById('contenedor-destacado');
+      const carouselContainer = document.getElementById('contenedor-carousel');
+      const proximamenteSep = document.getElementById('separador-proximamente');
+      
+      destContainer.innerHTML = "";
+      carouselContainer.innerHTML = "";
+      let hasCarouselItems = false;
+
       s.forEach(d => {
-        const da = d.data(); const t = da.Titulo || da.titulo || "Sin título";
-        c.innerHTML += `<div onclick="showOptions('${d.id}', '${t.replace(/'/g, "\\'")}')" class="cursor-pointer"><div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-2 overflow-hidden border-4 border-white active:scale-95 transition-transform"><img src="${da.portadaURL}" class="w-full h-full object-cover"></div><h3 class="font-bold text-[10px] text-center tracking-tight uppercase">${t}</h3></div>`;
+        const da = d.data(); 
+        const t = da.Titulo || da.titulo || "Sin título";
+        const cleanTit = t.toLowerCase().trim();
+
+        // Si es Ocho mil kilómetros va arriba solo en el mismo formato de rejilla
+        if (cleanTit === "ocho mil kilómetros" || cleanTit === "ocho mil kilometros") {
+            destContainer.innerHTML = `
+              <div onclick="showOptions('${d.id}', '${t.replace(/'/g, "\\'")}')" class="cursor-pointer col-span-2 max-w-[170px] mx-auto">
+                <div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-2 overflow-hidden border-4 border-white active:scale-95 transition-transform">
+                  <img src="${da.portadaURL}" class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-bold text-[10px] text-center tracking-tight uppercase">${t}</h3>
+              </div>`;
+        } else {
+            // Los demás van al carrusel horizontal inferior idénticos
+            hasCarouselItems = true;
+            carouselContainer.innerHTML += `
+              <div onclick="showOptions('${d.id}', '${t.replace(/'/g, "\\'")}')" class="carousel-item cursor-pointer">
+                <div class="aspect-[2/3] bg-gray-100 rounded-[2rem] shadow-xl mb-2 overflow-hidden border-4 border-white active:scale-95 transition-transform">
+                  <img src="${da.portadaURL}" class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-bold text-[10px] text-center tracking-tight uppercase">${t}</h3>
+              </div>`;
+        }
       });
+
+      if (hasCarouselItems) {
+          proximamenteSep.classList.remove('hidden');
+      }
     }
+
+    // Abrir la Hoja de Reportes (Solo para ti)
+    document.getElementById('btn-admin-logs').onclick = async () => {
+        if(!esM) return;
+        const area = document.getElementById('logs-render-area');
+        document.getElementById('modal-actividad').classList.remove('hidden');
+        area.innerHTML = '<p class="text-center text-gray-400 py-4">Leyendo base de datos...</p>';
+        
+        try {
+            const q = query(collection(db, "actividad_usuarios"), orderBy("fecha", "desc"), limit(50));
+            const snap = await getDocs(q);
+            area.innerHTML = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                const f = data.fecha ? data.fecha.toDate().toLocaleString() : "Reciente";
+                area.innerHTML += `
+                  <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 flex flex-col gap-1">
+                    <div class="flex justify-between items-center"><span class="font-bold text-blue-600 dark:text-blue-400">${data.usuario}</span><span class="text-[9px] text-gray-400">${f}</span></div>
+                    <p class="text-gray-700 dark:text-gray-300 font-medium">${data.accion}</p>
+                  </div>`;
+            });
+            if(area.innerHTML === "") area.innerHTML = '<p class="text-center text-gray-400 py-4">Sin actividad aún.</p>';
+        } catch(e) { area.innerHTML = '<p class="text-center text-red-500 py-4">Error al cargar bitácora.</p>'; }
+    };
 
     window.showOptions = (id, tit) => { libId = id; libTit = tit; document.getElementById('modal-titulo').innerText = tit; document.getElementById('modal-libro').classList.remove('hidden'); };
     document.getElementById('modal-btn-leer').onclick = () => { document.getElementById('modal-libro').classList.add('hidden'); openL(libId, libTit); };
 
     window.openL = async (id, tit) => {
       const q = query(collection(db, "libros", id, "capitulos"), orderBy("numero", "asc")); const s = await getDocs(q); caps = [];
-      s.forEach(d => { let x = d.data(); x.fid = d.id; if(x.visible !== false || esM) caps.push(x); });
+      s.forEach(d => { let x = d.data(); x.fid = d.id; if(x.visible_tit !== false || x.visible_sub !== false || x.visible_txt !== false || esM) caps.push(x); });
       document.getElementById('lector-libro').classList.remove('hidden'); document.getElementById('app-main').classList.add('hidden');
       if(caps.length === 0) {
           document.getElementById('disp-tit').innerText = tit; document.getElementById('disp-sub').innerText = "Sinopsis";
           const dRef = await getDoc(doc(db, "libros", id)); document.getElementById('disp-txt').innerHTML = dRef.data().sinopsis || "Próximamente...";
           document.getElementById('nav-lector').classList.add('hidden');
+          registrarLog(`Abrió Sinopsis de: ${tit}`);
       } else { cIdx = parseInt(localStorage.getItem(`prog_${id}`)) || 0; if(cIdx >= caps.length) cIdx = 0; document.getElementById('nav-lector').classList.remove('hidden'); render(); }
     };
 
     function render() {
-      const x = caps[cIdx]; document.getElementById('disp-tit').innerText = libTit;
-      document.getElementById('disp-sub').innerText = x.subtitulo || `Capítulo ${x.numero || cIdx+1}`;
-      document.getElementById('disp-txt').innerHTML = x.contenido || "";
+      const x = caps[cIdx]; 
+      if (x.visible_tit !== false || esM) { document.getElementById('disp-tit').innerText = libTit; document.getElementById('disp-tit').classList.remove('hidden'); } else { document.getElementById('disp-tit').classList.add('hidden'); }
+      if (x.visible_sub !== false || esM) { document.getElementById('disp-sub').innerText = x.subtitulo || `Capítulo ${x.numero || cIdx+1}`; document.getElementById('disp-sub').classList.remove('hidden'); } else { document.getElementById('disp-sub').classList.add('hidden'); }
+      if (x.visible_txt !== false || esM) { document.getElementById('disp-txt').innerHTML = x.contenido || ""; document.getElementById('disp-txt').classList.remove('hidden'); } else { document.getElementById('disp-txt').classList.add('hidden'); }
       document.getElementById('view-lectura').classList.remove('hidden'); document.getElementById('view-editor').classList.add('hidden');
       document.getElementById('progress-bar').style.width = ((cIdx+1)/caps.length*100) + "%";
-      if(esM) { document.getElementById('visibilidad-btn').innerText = (x.visible !== false) ? "👁️" : "🚫"; document.getElementById('visibilidad-btn').style.color = (x.visible !== false) ? "#3b82f6" : "#ef4444"; }
+      
+      if(esM) { 
+          document.getElementById('vis-tit-btn').innerText = (x.visible_tit !== false) ? "👁️" : "🚫"; document.getElementById('vis-tit-btn').style.color = (x.visible_tit !== false) ? "#3b82f6" : "#ef4444";
+          document.getElementById('vis-sub-btn').innerText = (x.visible_sub !== false) ? "👁️" : "🚫"; document.getElementById('vis-sub-btn').style.color = (x.visible_sub !== false) ? "#3b82f6" : "#ef4444";
+          document.getElementById('vis-txt-btn').innerText = (x.visible_txt !== false) ? "👁️" : "🚫"; document.getElementById('vis-txt-btn').style.color = (x.visible_txt !== false) ? "#3b82f6" : "#ef4444";
+      }
+      
       localStorage.setItem(`prog_${libId}`, cIdx);
+      registrarLog(`Leyendo: ${libTit} - ${x.subtitulo || 'Capítulo '+(cIdx+1)}`);
       document.getElementById('btn-atras').disabled = cIdx === 0; document.getElementById('btn-adelante').classList.toggle('hidden', cIdx === caps.length - 1);
       document.getElementById('btn-reiniciar').classList.toggle('hidden', cIdx !== caps.length - 1);
       document.getElementById('lector-libro').scrollTo(0,0);
@@ -171,26 +289,25 @@
         if(!esM) return;
         const nuevoNum = caps.length + 1;
         const docRef = await addDoc(collection(db, "libros", libId, "capitulos"), {
-            numero: nuevoNum,
-            subtitulo: `Capítulo ${nuevoNum}`,
-            contenido: "Escribe aquí el nuevo capítulo...",
-            visible: false,
-            fecha: serverTimestamp()
+            numero: nuevoNum, subtitulo: `Capítulo ${nuevoNum}`, contenido: "Escribe aquí el nuevo capítulo...",
+            visible_tit: true, visible_sub: true, visible_txt: true, fecha: serverTimestamp()
         });
-        const dRef = await getDoc(docRef);
-        let x = dRef.data(); x.fid = dRef.id;
-        caps.push(x);
-        cIdx = caps.length - 1;
-        render();
+        const dRef = await getDoc(docRef); let x = dRef.data(); x.fid = dRef.id; caps.push(x); cIdx = caps.length - 1; render();
     };
 
-    document.getElementById('visibilidad-btn').onclick = async () => {
+    document.getElementById('btn-delete').onclick = async () => {
+        if(!esM || caps.length === 0) return;
         const x = caps[cIdx];
-        const nuevoEstado = (x.visible !== false) ? false : true;
-        await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible: nuevoEstado });
-        x.visible = nuevoEstado;
-        render();
+        if(confirm(`¿Estás seguro de que deseas borrar permanentemente el ${x.subtitulo || 'este capítulo'}?`)) {
+            await deleteDoc(doc(db, "libros", libId, "capitulos", x.fid));
+            caps.splice(cIdx, 1); if(cIdx > 0) cIdx--;
+            if(caps.length === 0) { document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); loadBooks(); } else { render(); }
+        }
     };
+
+    document.getElementById('vis-tit-btn').onclick = async () => { const x = caps[cIdx]; const nuevoEstado = (x.visible_tit !== false) ? false : true; await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible_tit: nuevoEstado }); x.visible_tit = nuevoEstado; render(); };
+    document.getElementById('vis-sub-btn').onclick = async () => { const x = caps[cIdx]; const nuevoEstado = (x.visible_sub !== false) ? false : true; await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible_sub: nuevoEstado }); x.visible_sub = nuevoEstado; render(); };
+    document.getElementById('vis-txt-btn').onclick = async () => { const x = caps[cIdx]; const nuevoEstado = (x.visible_txt !== false) ? false : true; await updateDoc(doc(db, "libros", libId, "capitulos", x.fid), { visible_txt: nuevoEstado }); x.visible_txt = nuevoEstado; render(); };
 
     document.getElementById('modal-btn-pdf-full').onclick = async () => {
         const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
@@ -198,49 +315,45 @@
         let y = 20;
         s.forEach((d, index) => {
             const data = d.data();
-            if(data.visible !== false || esM) {
+            if(data.visible_txt !== false || esM) {
                 docPdf.setFontSize(18); docPdf.text(libTit, 105, y, { align: 'center' }); y += 10;
                 docPdf.setFontSize(14); docPdf.text(data.subtitulo || 'Capítulo '+(index+1), 105, y, { align: 'center' }); y += 15;
-                docPdf.setFontSize(10); const plainText = data.contenido.replace(/<[^>]*>/g, '');
-                const lines = docPdf.splitTextToSize(plainText, 180); docPdf.text(lines, 15, y);
+                docPdf.setFontSize(10); const plainText = data.contenido.replace(/<[^>]*>/g, ''); const lines = docPdf.splitTextToSize(plainText, 180); docPdf.text(lines, 15, y);
                 docPdf.addPage(); y = 20;
             }
         });
-        docPdf.save(`${libTit}_Completo.pdf`);
-        document.getElementById('modal-libro').classList.add('hidden');
+        registrarLog(`Descargó PDF completo de: ${libTit}`);
+        docPdf.save(`${libTit}_Completo.pdf`); document.getElementById('modal-libro').classList.add('hidden');
     };
 
     document.getElementById('edit-tit-btn').onclick = () => { editTarget = "TIT"; startEdit(document.getElementById('disp-tit').innerText); };
     document.getElementById('edit-sub-btn').onclick = () => { editTarget = "SUB"; startEdit(document.getElementById('disp-sub').innerText); };
     document.getElementById('edit-txt-btn').onclick = () => { editTarget = "TXT"; startEdit(caps.length === 0 ? document.getElementById('disp-txt').innerHTML : caps[cIdx].contenido); };
 
-    function startEdit(val) { 
-        document.getElementById('view-lectura').classList.add('hidden'); 
-        document.getElementById('view-editor').classList.remove('hidden'); 
-        // Limpiamos etiquetas HTML de títulos si se colaron
-        const cleanVal = val.replace(/<[^>]*>/g, '');
-        document.getElementById('box-editor').innerHTML = cleanVal; 
-    }
+    function startEdit(val) { document.getElementById('view-lectura').classList.add('hidden'); document.getElementById('view-editor').classList.remove('hidden'); const cleanVal = val.replace(/<[^>]*>/g, ''); document.getElementById('box-editor').innerHTML = cleanVal; }
 
     document.getElementById('btn-save-global').onclick = async () => {
-      let v = document.getElementById('box-editor').innerHTML;
-      if(editTarget === "TIT" || editTarget === "SUB") {
-          v = v.replace(/<[^>]*>/g, ''); // Limpieza forzada de HTML para títulos
-      }
+      let v = document.getElementById('box-editor').innerHTML; if(editTarget === "TIT" || editTarget === "SUB") { v = v.replace(/<[^>]*>/g, ''); }
       if(editTarget === "TIT") { await updateDoc(doc(db, "libros", libId), { Titulo: v }); libTit = v; document.getElementById('disp-tit').innerText = v; }
       if(editTarget === "SUB" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { subtitulo: v }); caps[cIdx].subtitulo = v; document.getElementById('disp-sub').innerText = v; }
       if(editTarget === "TXT" && caps.length === 0) { await updateDoc(doc(db, "libros", libId), { sinopsis: v }); document.getElementById('disp-txt').innerHTML = v; }
       if(editTarget === "TXT" && caps.length > 0) { await updateDoc(doc(db, "libros", libId, "capitulos", caps[cIdx].fid), { contenido: v }); caps[cIdx].contenido = v; document.getElementById('disp-txt').innerHTML = v; }
+      registrarLog(`Editó contenido en: ${libTit}`);
       document.getElementById('view-editor').classList.add('hidden'); document.getElementById('view-lectura').classList.remove('hidden');
     };
 
-    window.sendHype = async (emoji) => { await addDoc(collection(db, "reacciones"), { libro: libTit, lector: u, reaccion: emoji, fecha: serverTimestamp() }); alert("❤️ Enviado"); };
+    window.sendHype = async (emoji) => { 
+        await addDoc(collection(db, "reacciones"), { libro: libTit, lector: u, reaccion: emoji, fecha: serverTimestamp() }); 
+        registrarLog(`Reaccionó con ${emoji} en: ${libTit}`);
+        alert("❤️ Enviado"); 
+    };
+    
     document.getElementById('btn-reiniciar').onclick = () => { localStorage.setItem(`prog_${libId}`, 0); document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
     document.getElementById('btn-atras').onclick = () => { if(cIdx > 0) { cIdx--; render(); }};
     document.getElementById('btn-adelante').onclick = () => { if(cIdx < caps.length - 1) { cIdx++; render(); }};
     document.getElementById('btn-cerrar').onclick = () => { document.getElementById('lector-libro').classList.add('hidden'); document.getElementById('app-main').classList.remove('hidden'); };
     document.getElementById('btn-night-mode').onclick = () => { const dark = document.body.classList.toggle('dark-mode'); document.getElementById('btn-night-mode').innerText = dark ? '☀️' : '🌙'; };
-    document.getElementById('btn-logout').onclick = () => { localStorage.clear(); location.reload(); };
+    document.getElementById('btn-logout').onclick = () => { registrarLog("Cerró sesión"); localStorage.clear(); location.reload(); };
   </script>
 </body>
 </html>
